@@ -9,8 +9,8 @@
   "sha256": "",
   "releaseNotes": [
     "SENETECH Setup V1.4.2",
-    "Système de mise à jour GitHub activé",
-    "Vérification sécurisée des futures versions",
-    "Préparation de la mise à jour intégrée à l'application"
+    "Bouton Mise à jour intégré à l'interface",
+    "Vérification de la dernière version via GitHub",
+    "Préparation sécurisée des futures mises à jour"
   ]
 }
