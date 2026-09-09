@@ -3,16 +3,18 @@
 ## V1.4.2 — 2026-09-10
 
 - Version stable actuelle définie sur **1.4.2.0**.
-- Ajout du système de vérification des mises à jour depuis GitHub.
-- Ajout d'une fenêtre de détection d'une nouvelle version avec notes de version.
-- Ajout d'un point d'intégration pour le bouton **Rechercher les mises à jour**.
-- Ajout d'un code de sortie `10` permettant à l'application de savoir qu'elle doit se fermer avant mise à jour.
-- L'updater peut attendre la fermeture du processus SENETECH avant de remplacer les fichiers.
-- Téléchargement des futures versions depuis GitHub.
-- Vérification SHA-256 avant installation d'une mise à jour.
-- Relance automatique de `SENETECH-Setup.exe` après remplacement.
-- Ajout du journal `%TEMP%\SENETECH-Update.log`.
-- Compatibilité améliorée avec les versions de Windows utilisant Windows PowerShell.
+- Bouton **Mise à jour** intégré directement dans l'interface V1.4.2.
+- Vérification de la version distante via `version.json` sur GitHub.
+- Message **SENETECH V1.4.2 est déjà à jour** lorsqu'aucune version supérieure n'existe.
+- Affichage des notes de version avant installation d'une nouvelle version.
+- Demande de confirmation avant toute mise à jour.
+- Téléchargement du moteur d'update depuis le dépôt officiel.
+- Transmission du PID de SENETECH pour attendre sa fermeture avant remplacement.
+- Téléchargement et extraction du futur package ZIP.
+- Vérification SHA-256 du package lorsqu'une nouvelle version est publiée.
+- Remplacement des fichiers puis relance automatique de `SENETECH-Setup.exe`.
+- Journal d'update dans `%TEMP%\SENETECH-Update.log`.
+- Compatibilité Windows PowerShell conservée.
 
 ## V1.3 — 2026-09-10
 
