@@ -1,9 +1,12 @@
 param(
     [Parameter(Mandatory=$false)]
-    [string]$CurrentVersion = "1.3.0.0",
+    [string]$CurrentVersion = "1.4.2.0",
 
     [Parameter(Mandatory=$false)]
-    [string]$InstallDir = (Split-Path -Parent $MyInvocation.MyCommand.Path)
+    [string]$InstallDir = (Split-Path -Parent $MyInvocation.MyCommand.Path),
+
+    [Parameter(Mandatory=$false)]
+    [switch]$NoRestart
 )
 
 $ErrorActionPreference = "Stop"
@@ -11,19 +14,27 @@ $ManifestUrl = "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/v
 $TempRoot = Join-Path $env:TEMP "SENETECH-Update"
 $ZipPath = Join-Path $TempRoot "SENETECH-update.zip"
 $StageDir = Join-Path $TempRoot "stage"
+$LogPath = Join-Path $env:TEMP "SENETECH-Update.log"
 
 function Write-Log([string]$Message) {
     $stamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Write-Host "[$stamp] $Message"
+    $line = "[$stamp] $Message"
+    Write-Host $line
+    try { Add-Content -Path $LogPath -Value $line -Encoding UTF8 } catch {}
 }
 
-try {
+function Get-RemoteManifest {
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     } catch {}
 
+    $headers = @{ "User-Agent" = "SENETECH-Setup/$CurrentVersion" }
+    return Invoke-RestMethod -Uri $ManifestUrl -Headers $headers -UseBasicParsing
+}
+
+try {
     Write-Log "Verification des mises a jour SENETECH..."
-    $manifest = Invoke-RestMethod -Uri $ManifestUrl -UseBasicParsing
+    $manifest = Get-RemoteManifest
 
     if (-not $manifest.enabled) {
         Write-Log "Les mises a jour distantes sont actuellement desactivees."
@@ -39,7 +50,7 @@ try {
     }
 
     if ([string]::IsNullOrWhiteSpace([string]$manifest.downloadUrl)) {
-        throw "Aucune URL de telechargement n'est definie dans version.json."
+        throw "Aucune URL de telechargement n'est definie pour la version $($manifest.version)."
     }
 
     if (Test-Path $TempRoot) {
@@ -49,8 +60,9 @@ try {
     New-Item -ItemType Directory -Path $StageDir | Out-Null
 
     Write-Log "Nouvelle version detectee : $($manifest.version)"
-    Write-Log "Telechargement..."
-    Invoke-WebRequest -Uri $manifest.downloadUrl -OutFile $ZipPath -UseBasicParsing
+    Write-Log "Telechargement de la mise a jour..."
+    $headers = @{ "User-Agent" = "SENETECH-Setup/$CurrentVersion" }
+    Invoke-WebRequest -Uri ([string]$manifest.downloadUrl) -Headers $headers -OutFile $ZipPath -UseBasicParsing
 
     if (-not [string]::IsNullOrWhiteSpace([string]$manifest.sha256)) {
         $actualHash = (Get-FileHash -Path $ZipPath -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -70,17 +82,22 @@ try {
     }
 
     $ApplyScript = Join-Path $TempRoot "APPLY-SENETECH-UPDATE.cmd"
+    $restartLine = ""
+    if (-not $NoRestart) {
+        $restartLine = "start \"\" \"$InstallDir\SENETECH-Setup.exe\""
+    }
+
     $cmd = @"
 @echo off
 setlocal
 ping 127.0.0.1 -n 3 >nul
 xcopy "$StageDir\*" "$InstallDir\" /E /I /Y /Q >nul
-start "" "$InstallDir\SENETECH-Setup.exe"
+$restartLine
 exit /b 0
 "@
     Set-Content -Path $ApplyScript -Value $cmd -Encoding ASCII
 
-    Write-Log "Mise a jour prete. SENETECH va etre remplace puis relance."
+    Write-Log "Mise a jour prete a etre appliquee."
     Start-Process -FilePath $ApplyScript -WindowStyle Hidden
     exit 10
 }
