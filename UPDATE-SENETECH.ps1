@@ -32,6 +32,23 @@ function Get-RemoteManifest {
     return Invoke-RestMethod -Uri $ManifestUrl -Headers $headers -UseBasicParsing
 }
 
+function Get-Sha256([string]$Path) {
+    $stream = [System.IO.File]::OpenRead($Path)
+    try {
+        $sha = [System.Security.Cryptography.SHA256]::Create()
+        try {
+            $bytes = $sha.ComputeHash($stream)
+            return ([System.BitConverter]::ToString($bytes)).Replace("-", "").ToLowerInvariant()
+        }
+        finally {
+            $sha.Dispose()
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
 try {
     Write-Log "Verification des mises a jour SENETECH..."
     $manifest = Get-RemoteManifest
@@ -65,7 +82,7 @@ try {
     Invoke-WebRequest -Uri ([string]$manifest.downloadUrl) -Headers $headers -OutFile $ZipPath -UseBasicParsing
 
     if (-not [string]::IsNullOrWhiteSpace([string]$manifest.sha256)) {
-        $actualHash = (Get-FileHash -Path $ZipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        $actualHash = Get-Sha256 -Path $ZipPath
         $expectedHash = ([string]$manifest.sha256).ToLowerInvariant()
         if ($actualHash -ne $expectedHash) {
             throw "Le SHA-256 du fichier telecharge ne correspond pas au manifeste. Mise a jour annulee."
@@ -84,7 +101,7 @@ try {
     $ApplyScript = Join-Path $TempRoot "APPLY-SENETECH-UPDATE.cmd"
     $restartLine = ""
     if (-not $NoRestart) {
-        $restartLine = "start \"\" \"$InstallDir\SENETECH-Setup.exe\""
+        $restartLine = 'start "" "' + (Join-Path $InstallDir "SENETECH-Setup.exe") + '"'
     }
 
     $cmd = @"
