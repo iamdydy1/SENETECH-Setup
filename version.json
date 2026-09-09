@@ -1,0 +1,16 @@
+{
+  "product": "SENETECH Setup",
+  "channel": "stable",
+  "version": "1.3.0.0",
+  "displayVersion": "1.3",
+  "enabled": false,
+  "mandatory": false,
+  "downloadUrl": "",
+  "sha256": "",
+  "releaseNotes": [
+    "Nouvelle interface SENETECH V1.3",
+    "Logo SENETECH intégré",
+    "Profils d'installation améliorés",
+    "Préparation du système de mise à jour automatique GitHub"
+  ]
+}
