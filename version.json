@@ -3,13 +3,13 @@
   "channel": "stable",
   "version": "1.4.2.0",
   "displayVersion": "1.4.2",
-  "enabled": false,
+  "enabled": true,
   "mandatory": false,
   "downloadUrl": "",
   "sha256": "",
   "releaseNotes": [
     "SENETECH Setup V1.4.2",
-    "Base officielle du système de mise à jour GitHub",
+    "Système de mise à jour GitHub activé",
     "Vérification sécurisée des futures versions",
     "Préparation de la mise à jour intégrée à l'application"
   ]
