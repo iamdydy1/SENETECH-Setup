@@ -9,78 +9,65 @@ Application portable SENETECH destinée à préparer et configurer les PC Window
 - Canal : **stable**
 - Lanceur : `SENETECH-Setup.exe`
 
-## Système de mise à jour GitHub
+## Mise à jour intégrée à V1.4.2
 
-Le dépôt sert de source officielle pour les futures mises à jour de SENETECH.
+La source V1.4.2 intègre maintenant directement un bouton **Mise à jour** dans l'interface SENETECH.
 
-### `version.json`
+Quand l'utilisateur clique dessus, l'application :
 
-Le manifeste distant indique :
+1. vérifie la connexion Internet ;
+2. lit `version.json` depuis ce dépôt ;
+3. compare la version installée avec la version distante ;
+4. confirme que V1.4.2 est à jour si aucune version supérieure n'existe ;
+5. affiche les notes de version lorsqu'une nouvelle version est disponible ;
+6. demande confirmation avant installation ;
+7. télécharge le moteur `UPDATE-SENETECH.ps1` ;
+8. transmet le PID de SENETECH à l'updater ;
+9. ferme proprement l'application ;
+10. l'updater remplace les fichiers puis relance `SENETECH-Setup.exe`.
+
+## `version.json`
+
+Le manifeste distant contient :
 
 - la dernière version disponible ;
-- si le service de mise à jour est activé ;
-- si la mise à jour est importante ;
+- l'état d'activation des mises à jour ;
+- le caractère obligatoire ou non de la mise à jour ;
 - l'URL du package ZIP ;
-- le SHA-256 du package ;
+- son empreinte SHA-256 ;
 - les notes de version.
 
-### `CHECK-SENETECH-UPDATE.ps1`
-
-C'est le point d'entrée destiné à l'interface SENETECH V1.4.2.
-
-Il :
-
-1. contacte le dépôt GitHub ;
-2. compare V1.4.2 avec la version distante ;
-3. affiche une fenêtre si une nouvelle version existe ;
-4. présente les notes de version ;
-5. laisse l'utilisateur accepter ou reporter la mise à jour ;
-6. lance le moteur de mise à jour en arrière-plan.
-
-Code de sortie `10` : la mise à jour a été acceptée. L'application SENETECH doit alors se fermer afin de permettre le remplacement de son exécutable.
-
-### `UPDATE-SENETECH.ps1`
+## `UPDATE-SENETECH.ps1`
 
 Le moteur de mise à jour :
 
 1. vérifie à nouveau la version distante ;
 2. télécharge le ZIP de la nouvelle version ;
-3. vérifie son SHA-256 ;
+3. vérifie son SHA-256 lorsqu'il est renseigné ;
 4. extrait les fichiers dans un dossier temporaire ;
-5. attend la fermeture du processus SENETECH si son PID a été transmis ;
-6. remplace les fichiers ;
+5. attend la fermeture du processus SENETECH ;
+6. remplace les fichiers de l'application ;
 7. relance `SENETECH-Setup.exe`.
 
-Un journal est écrit dans `%TEMP%\SENETECH-Update.log`.
-
-## Intégration dans V1.4.2
-
-Le bouton **Rechercher les mises à jour** de l'application doit lancer :
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "CHECK-SENETECH-UPDATE.ps1" -CurrentVersion "1.4.2.0" -InstallDir "<dossier SENETECH>" -HostProcessId <PID SENETECH>
-```
-
-Si le processus retourne le code `10`, SENETECH doit fermer sa fenêtre principale et quitter normalement. L'updater attendra ensuite sa fermeture avant de remplacer les fichiers.
+Le journal d'update est écrit dans `%TEMP%\SENETECH-Update.log`.
 
 ## Publication d'une future version
 
-Exemple pour V1.4.3 :
+Exemple pour **V1.4.3** :
 
-1. Générer `SENETECH-Setup-V1.4.3.zip`.
-2. Publier le ZIP dans une GitHub Release avec un tag comme `v1.4.3`.
-3. Calculer le SHA-256 du ZIP.
-4. Mettre à jour `version.json` :
+1. Générer le nouveau dossier SENETECH puis `SENETECH-Setup.exe`.
+2. Créer un ZIP dont le contenu de l'application est directement à la racine du ZIP pour l'updater.
+3. Publier le ZIP sur GitHub.
+4. Calculer le SHA-256 du ZIP.
+5. Modifier `version.json` :
    - `version` → `1.4.3.0`
    - `displayVersion` → `1.4.3`
    - `enabled` → `true`
-   - `downloadUrl` → URL directe du ZIP de la Release
+   - `downloadUrl` → URL directe du ZIP
    - `sha256` → empreinte SHA-256 du ZIP
    - `releaseNotes` → nouveautés de la version
-5. Tester sur un PC SENETECH avant diffusion générale.
+6. Tester la mise à jour depuis une V1.4.2 avant diffusion générale.
 
 ## Sécurité
-
-Une mise à jour dont le SHA-256 ne correspond pas au manifeste est annulée.
 
 Ne jamais mettre de mot de passe, token GitHub ou clé privée dans ce dépôt public.
