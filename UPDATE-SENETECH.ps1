@@ -6,6 +6,9 @@ param(
     [string]$InstallDir = (Split-Path -Parent $MyInvocation.MyCommand.Path),
 
     [Parameter(Mandatory=$false)]
+    [int]$WaitForProcessId = 0,
+
+    [Parameter(Mandatory=$false)]
     [switch]$NoRestart
 )
 
@@ -104,10 +107,23 @@ try {
         $restartLine = 'start "" "' + (Join-Path $InstallDir "SENETECH-Setup.exe") + '"'
     }
 
+    $waitBlock = ""
+    if ($WaitForProcessId -gt 0) {
+        $waitBlock = @"
+:WAIT_FOR_SENETECH
+tasklist /FI "PID eq $WaitForProcessId" /NH | find "$WaitForProcessId" >nul
+if not errorlevel 1 (
+    ping 127.0.0.1 -n 2 >nul
+    goto WAIT_FOR_SENETECH
+)
+"@
+    }
+
     $cmd = @"
 @echo off
 setlocal
-ping 127.0.0.1 -n 3 >nul
+$waitBlock
+ping 127.0.0.1 -n 2 >nul
 xcopy "$StageDir\*" "$InstallDir\" /E /I /Y /Q >nul
 $restartLine
 exit /b 0
