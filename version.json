@@ -1,8 +1,8 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.6.0.11",
-  "displayVersion": "1.6.0 DEV",
+  "version": "1.6.0.12",
+  "displayVersion": "1.6.0 DEV - build 12",
   "enabled": true,
   "mandatory": false,
   "downloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
@@ -11,61 +11,22 @@
   "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "basePackageSize": 109004,
   "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
-  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v13.ps1",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v14.ps1",
   "patchSha256": "",
   "overlayFiles": [
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Catalog.ps1",
-      "path": "_SENETECH/Modules/Senetech.Catalog.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Technician.ps1",
-      "path": "_SENETECH/Modules/Senetech.Technician.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.StartupFix.ps1",
-      "path": "_SENETECH/Modules/Senetech.StartupFix.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Delivery.ps1",
-      "path": "_SENETECH/Modules/Senetech.Delivery.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.WinGet.ps1",
-      "path": "_SENETECH/Modules/Senetech.WinGet.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Display.ps1",
-      "path": "_SENETECH/Modules/Senetech.Display.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.DeliveryDisplayFix.ps1",
-      "path": "_SENETECH/Modules/Senetech.DeliveryDisplayFix.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.DeliveryInventoryFix.ps1",
-      "path": "_SENETECH/Modules/Senetech.DeliveryInventoryFix.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.DeliveryRegistryFix.ps1",
-      "path": "_SENETECH/Modules/Senetech.DeliveryRegistryFix.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Client/SENETECH-Welcome.ps1",
-      "path": "_SENETECH/Client/SENETECH-Welcome.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Moteur-WindowsUpdate.ps1",
-      "path": "_SENETECH/Moteur-WindowsUpdate.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/catalog/apps.json",
-      "path": "_SENETECH/Catalog/apps.json"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/catalog/profiles.json",
-      "path": "_SENETECH/Catalog/profiles.json"
-    }
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Catalog.ps1","path":"_SENETECH/Modules/Senetech.Catalog.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Technician.ps1","path":"_SENETECH/Modules/Senetech.Technician.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.StartupFix.ps1","path":"_SENETECH/Modules/Senetech.StartupFix.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Delivery.ps1","path":"_SENETECH/Modules/Senetech.Delivery.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.WinGet.ps1","path":"_SENETECH/Modules/Senetech.WinGet.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Display.ps1","path":"_SENETECH/Modules/Senetech.Display.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.DeliveryDisplayFix.ps1","path":"_SENETECH/Modules/Senetech.DeliveryDisplayFix.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.DeliveryInventoryFix.ps1","path":"_SENETECH/Modules/Senetech.DeliveryInventoryFix.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.DeliveryRegistryFix.ps1","path":"_SENETECH/Modules/Senetech.DeliveryRegistryFix.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Client/SENETECH-Welcome.ps1","path":"_SENETECH/Client/SENETECH-Welcome.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Moteur-WindowsUpdate.ps1","path":"_SENETECH/Moteur-WindowsUpdate.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/catalog/apps.json","path":"_SENETECH/Catalog/apps.json"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/catalog/profiles.json","path":"_SENETECH/Catalog/profiles.json"}
   ],
   "requiredFiles": [
     "_SENETECH/Modules/Senetech.Catalog.ps1",
@@ -82,20 +43,13 @@
     "_SENETECH/Catalog/profiles.json"
   ],
   "releaseNotes": [
-    "SENETECH V1.6.0 DEV - build 11",
-    "Correction de l erreur DisplayName dans Voir les applications detectees",
-    "Les entrees registre Windows sans DisplayName sont maintenant ignorees proprement",
-    "Lecture des proprietes registre securisee pour Windows PowerShell 5.1 avec mode strict",
-    "L inventaire Livraison et le nettoyage PC propre utilisent la meme detection robuste",
-    "L apercu anti-crash de build 10 est maintenu",
-    "Fenetre Livraison responsive et contraste renforce maintenus",
-    "Interface principale responsive maintenue",
+    "SENETECH V1.6.0 DEV - build 12",
+    "Build technique maintenant visible dans l interface",
+    "Mise a jour forcee pour reinjecter le correctif DisplayName sur les machines deja en 1.6.0.11",
+    "Correctif inventaire Livraison compatible avec les entrees registre sans DisplayName",
+    "Apercu applications anti-crash maintenu",
+    "Interface responsive et fenetre Livraison lisible maintenues",
     "Correction Windows 10 App Installer/WinGet maintenue",
-    "Correction updater Portable/Installe maintenue",
-    "Mode Livraison / Vente avec PC propre ou configuration client conservee",
-    "Suppression differee du profil technicien et preparation OOBE",
-    "SENETECH Welcome au premier profil client",
-    "Catalogue applications et profils dynamique",
-    "Windows Update avance, diagnostics enrichis, historique et rollback"
+    "Correction updater Portable/Installe maintenue"
   ]
 }
