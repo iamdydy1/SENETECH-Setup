@@ -6,11 +6,23 @@
   "enabled": true,
   "mandatory": false,
   "downloadUrl": "",
-  "sha256": "",
+  "packageParts": [
+    "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/packages/v1.4.2/part01.b64",
+    "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/packages/v1.4.2/part02.b64",
+    "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/packages/v1.4.2/part03.b64",
+    "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/packages/v1.4.2/part04.b64",
+    "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/packages/v1.4.2/part05.b64",
+    "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/packages/v1.4.2/part06.b64",
+    "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/packages/v1.4.2/part07.b64",
+    "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/packages/v1.4.2/part08.b64"
+  ],
+  "packageSize": 102045,
+  "sha256": "f36f81c05f6eb529a3e27095c79683652e957176e3fe4f6ae6e663a1570641b4",
   "releaseNotes": [
     "SENETECH Setup V1.4.2",
+    "SENETECH-Setup.exe inclus dans le package officiel",
     "Bouton Mise à jour intégré à l'interface",
-    "Vérification de la dernière version via GitHub",
-    "Préparation sécurisée des futures mises à jour"
+    "Vérification SHA-256 avant installation",
+    "Mise à jour hébergée directement sur GitHub"
   ]
 }
