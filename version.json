@@ -1,19 +1,17 @@
 {
   "product": "SENETECH Setup",
-  "channel": "stable",
+  "channel": "develop",
   "version": "1.5.1.0",
   "displayVersion": "1.5.1",
   "enabled": true,
   "mandatory": false,
-  "downloadUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/dist/SENETECH-Setup-V1.5.1-STABLE.zip",
+  "downloadUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/dist/SENETECH-Setup-V1.5.1-STABLE.zip",
   "packageSize": 109004,
   "sha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
   "releaseNotes": [
-    "SENETECH Setup V1.5.1 - base Stable officielle",
-    "Package complet avec SENETECH-Setup.exe, moteur et assets",
-    "Modes Portable et Installe dans une seule application",
-    "Canal Stable par defaut sur main",
-    "Canal Developpeur disponible depuis Parametres",
-    "Verification SHA-256 du package complet"
+    "SENETECH Setup V1.5.1 - base du canal Developpeur",
+    "Le canal develop repart exactement de la Stable V1.5.1",
+    "Aucune fonction experimentale supplementaire n'est publiee pour le moment",
+    "Les prochaines modifications seront publiees ici avant promotion sur main"
   ]
 }
