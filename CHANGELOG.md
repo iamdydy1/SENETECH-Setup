@@ -1,5 +1,26 @@
 # Changelog SENETECH Setup — Develop
 
+## V1.6.0.3 DEV — 2026-09-10
+
+- Nouveau module **Livraison / Vente** destiné aux PC préparés pour revente.
+- Ajout d'un assistant **FINALISER POUR LA VENTE** distinct du workflow normal de préparation.
+- Deux modes de livraison :
+  - **PC propre / vierge** : suppression des applications tierces détectées, avec protection automatique des composants Windows, runtimes partagés et pilotes matériels.
+  - **PC configuré pour le client** : conservation des applications déjà installées et nettoyage des traces du technicien uniquement.
+- Aperçu des applications détectées avant toute suppression.
+- Double confirmation avec saisie de `VENTE` avant la phase destructive.
+- Nettoyage des fichiers temporaires, éléments récents et traces SENETECH de la session technicien.
+- Suppression différée du profil et du compte technicien au prochain démarrage lorsque le compte est supprimable.
+- Préparation de Windows pour démarrer sur l'OOBE/Bienvenue sans réinstaller complètement Windows.
+- Extinction automatique après finalisation afin que la machine soit prête à être emballée/livrée.
+- Nouveau **SENETECH Welcome** au premier profil client : choix d'un profil ou d'applications facultatives, installation via WinGet ou refus avec « Non merci ».
+- Le workflow de livraison reste en canal `develop` jusqu'à validation réelle sur une machine de test.
+
+## V1.6.0.2 DEV — 2026-09-10
+
+- Correctif de compatibilité de la fenêtre Démarrage Windows : remplacement du séparateur Unicode problématique par un séparateur ASCII.
+- Chargement d'un override dédié après le module technicien pour empêcher le retour du problème d'encodage sous Windows PowerShell 5.1.
+
 ## V1.6.0.1 DEV — 2026-09-10
 
 - Correctif d'encodage pour Windows PowerShell 5.1.
