@@ -1,4 +1,4 @@
-﻿param(
+param(
     [Parameter(Mandatory=$true)]
     [string]$StageDir
 )
@@ -20,7 +20,6 @@ function Replace-BytePattern([byte[]]$Data,[byte[]]$Old,[byte[]]$New) {
     }
 }
 
-# Repart de la V1.5.0 officielle afin que ce patch fonctionne aussi depuis V1.4.x.
 $basePatchUrl = 'https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/packages/v1.5.0/PATCH-SENETECH-1.5.0-ENGINE.ps1'
 $basePatch = Join-Path $env:TEMP 'SENETECH-PATCH-1.5.0.ps1'
 Invoke-WebRequest -Uri $basePatchUrl -Headers $headers -OutFile $basePatch -UseBasicParsing
@@ -124,7 +123,7 @@ $text = $text.Replace("        `$script:ModeHeaderText.Text = 'MODE PORTABLE'","
 $anchor = 'function New-BrandBitmap([string]$Path) {'
 $settings = @'
 function Show-SenetechSettings {
-    $settingsXaml = @'
+    $settingsXaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Paramètres SENETECH" Height="345" Width="520" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Background="#0B1320" Foreground="#E5EEF5">
   <Grid Margin="22"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <TextBlock Text="PARAMÈTRES DE MISE À JOUR" Foreground="#6FAFD1" FontSize="16" FontWeight="Bold"/>
@@ -136,7 +135,7 @@ function Show-SenetechSettings {
     <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0"><Button x:Name="CancelButton" Content="Annuler" Padding="18,8" Margin="0,0,8,0"/><Button x:Name="SaveButton" Content="Enregistrer" Padding="18,8" Background="#0284C7" Foreground="White"/></StackPanel>
   </Grid>
 </Window>
-'@
+"@
     [xml]$settingsXml = $settingsXaml
     $settingsReader = New-Object System.Xml.XmlNodeReader $settingsXml
     $settingsWindow = [Windows.Markup.XamlReader]::Load($settingsReader)
