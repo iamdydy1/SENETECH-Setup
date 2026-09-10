@@ -11,15 +11,16 @@ La base Stable actuelle est **SENETECH V1.5.1**.
 - Branche GitHub : **main**
 - Windows : **10 / 11**
 - Déploiement : **Portable + Installé**
-- Package officiel : `dist/SENETECH-Setup-V1.5.1-STABLE.zip`
+- Package officiel complet : `dist/SENETECH-Setup-V1.5.1-STABLE.zip`
+- SHA-256 : `81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a`
 
-Le package Stable est un runtime complet : il contient `SENETECH-Setup.exe`, le moteur `_SENETECH`, les assets et les fichiers nécessaires. Les mises à jour Stable téléchargent directement ce package complet et vérifient son SHA-256 avant remplacement.
+**Le ZIP dans `dist/` est la référence Stable distribuée aux utilisateurs.** Il contient `SENETECH-Setup.exe`, le moteur `_SENETECH`, les assets et tous les fichiers runtime nécessaires.
 
 ## Une seule application, deux modes
 
 ### Mode Portable
 
-SENETECH peut fonctionner directement depuis une clé USB ou un dossier, sans installation. Il peut ensuite être installé sur le PC depuis l'interface.
+SENETECH fonctionne depuis une clé USB ou un dossier, sans installation. Depuis l'interface, il peut aussi être installé sur le PC.
 
 ### Mode Installé
 
@@ -27,36 +28,24 @@ SENETECH peut être installé dans `C:\Program Files\SENETECH`, avec raccourcis 
 
 Portable et Installé restent la même application et utilisent le même système de mise à jour.
 
-## Deux canaux de mise à jour
+## Deux canaux
 
 ### Stable — `main`
 
-Canal recommandé et utilisé par défaut pour les clients et les PC vendus. Seules les versions validées y sont publiées.
+Canal par défaut pour les clients et les PC vendus. Seules les versions validées doivent y être publiées.
 
 ### Développeur — `develop`
 
-Canal destiné aux tests et aux futures fonctions. Une version est développée et testée ici avant d'être promue sur `main`.
+Canal de test. Les nouvelles fonctions sont développées et testées ici avant promotion sur `main`.
 
-Depuis SENETECH V1.5.1, le canal peut être choisi dans **Paramètres**. Le choix est mémorisé localement. Une nouvelle installation client démarre toujours sur Stable.
+Depuis V1.5.1, **Paramètres** permet de choisir Stable ou Développeur. Le choix est mémorisé localement. Une nouvelle installation client démarre toujours en Stable.
 
 ## Mise à jour
 
-Le bouton **Mise à jour** :
-
-1. consulte le `version.json` du canal sélectionné ;
-2. compare la version locale et distante ;
-3. affiche les notes de version ;
-4. télécharge le package ;
-5. vérifie son SHA-256 ;
-6. ferme SENETECH ;
-7. remplace les fichiers ;
-8. relance l'application ;
-9. nettoie les fichiers temporaires.
-
-En mode Installé, SENETECH peut également vérifier automatiquement les mises à jour après le lancement.
+Le bouton **Mise à jour** consulte le `version.json` du canal choisi, télécharge le package, contrôle son SHA-256, ferme SENETECH, remplace les fichiers, relance l'application puis nettoie les fichiers temporaires.
 
 ## Règle de développement
 
-**V1.5.1 Stable est désormais la base de référence.** Les nouvelles modifications doivent être faites sur `develop`. Une fois testées et validées, elles peuvent être promues sur `main` avec une nouvelle version Stable.
+**V1.5.1 Stable est la base de référence.** Toutes les prochaines modifications commencent sur `develop`. Après test et validation, une version peut être promue sur `main`.
 
 Ne jamais mettre de mot de passe, token GitHub ou clé privée dans ce dépôt public.
