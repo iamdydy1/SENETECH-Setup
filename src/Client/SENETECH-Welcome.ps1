@@ -7,9 +7,21 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $done = Join-Path $root 'completed.flag'
 if (Test-Path -LiteralPath $done) { exit 0 }
 
+function F([AllowNull()][string]$Text) {
+    if ($null -eq $Text) { return '' }
+    $value = $Text
+    $map = [ordered]@{
+        '{agrave}'=[string]([char]0x00E0); '{cced}'=[string]([char]0x00E7)
+        '{eacute}'=[string]([char]0x00E9); '{egrave}'=[string]([char]0x00E8); '{ecirc}'=[string]([char]0x00EA)
+        '{ocirc}'=[string]([char]0x00F4); '{ugrave}'=[string]([char]0x00F9); '{Eacute}'=[string]([char]0x00C9)
+    }
+    foreach ($token in $map.Keys) { $value = $value.Replace($token,$map[$token]) }
+    return $value
+}
+
 $culture = [Globalization.CultureInfo]::CurrentUICulture.TwoLetterISOLanguageName
 $isFr = ($culture -eq 'fr')
-function T([string]$fr,[string]$en) { if ($isFr) { return $fr } else { return $en } }
+function T([string]$fr,[string]$en) { if ($isFr) { return (F $fr) } else { return $en } }
 
 $appsPath = Join-Path $root 'apps.json'
 $profilesPath = Join-Path $root 'profiles.json'
@@ -36,15 +48,19 @@ if (Test-Path -LiteralPath $logoPath) {
         [void]$header.Children.Add($img)
     } catch { }
 }
-$title = New-Object System.Windows.Controls.TextBlock; $title.Text=(T 'Bienvenue sur votre PC prepare par SENETECH' 'Welcome to your SENETECH-prepared PC'); $title.FontSize=25; $title.FontWeight='Bold'
-$desc = New-Object System.Windows.Controls.TextBlock; $desc.Text=(T 'Choisissez un profil ou personnalisez les applications que vous souhaitez installer. Tout est facultatif.' 'Choose a profile or customize the applications you want to install. Everything is optional.'); $desc.TextWrapping='Wrap'; $desc.Foreground='#9FB4C8'; $desc.Margin='0,6,0,8'
+$title = New-Object System.Windows.Controls.TextBlock
+$title.Text=(T 'Bienvenue sur votre PC pr{eacute}par{eacute} par SENETECH' 'Welcome to your SENETECH-prepared PC')
+$title.FontSize=25; $title.FontWeight='Bold'
+$desc = New-Object System.Windows.Controls.TextBlock
+$desc.Text=(T 'Choisissez un profil ou personnalisez les applications que vous souhaitez installer. Tout est facultatif.' 'Choose a profile or customize the applications you want to install. Everything is optional.')
+$desc.TextWrapping='Wrap'; $desc.Foreground='#9FB4C8'; $desc.Margin='0,6,0,8'
 [void]$header.Children.Add($title); [void]$header.Children.Add($desc); [void]$rootPanel.Children.Add($header)
 
 $footer = New-Object System.Windows.Controls.StackPanel; $footer.Orientation='Horizontal'; $footer.HorizontalAlignment='Right'; $footer.Margin='20'
 [System.Windows.Controls.DockPanel]::SetDock($footer,'Bottom')
 $status = New-Object System.Windows.Controls.TextBlock; $status.Text=''; $status.VerticalAlignment='Center'; $status.Margin='0,0,14,0'; $status.Foreground='#7FC7E8'
 $noThanks = New-Object System.Windows.Controls.Button; $noThanks.Content=(T 'Non merci' 'No thanks'); $noThanks.Padding='16,9'; $noThanks.Margin='5'
-$install = New-Object System.Windows.Controls.Button; $install.Content=(T 'Installer la selection' 'Install selection'); $install.Padding='16,9'; $install.Margin='5'
+$install = New-Object System.Windows.Controls.Button; $install.Content=(T 'Installer la s{eacute}lection' 'Install selection'); $install.Padding='16,9'; $install.Margin='5'
 [void]$footer.Children.Add($status); [void]$footer.Children.Add($noThanks); [void]$footer.Children.Add($install); [void]$rootPanel.Children.Add($footer)
 
 $body = New-Object System.Windows.Controls.StackPanel; $body.Margin='24,8,24,8'
@@ -87,12 +103,12 @@ $noThanks.Add_Click({ Mark-Completed 'declined'; $window.Close() })
 $install.Add_Click({
     $selected = @($checks.Values | Where-Object { $_.IsChecked -eq $true })
     if ($selected.Count -eq 0) {
-        [System.Windows.MessageBox]::Show((T 'Aucune application selectionnee.' 'No application selected.'),'SENETECH Welcome') | Out-Null
+        [System.Windows.MessageBox]::Show((T 'Aucune application s{eacute}lectionn{eacute}e.' 'No application selected.'),'SENETECH Welcome') | Out-Null
         return
     }
     $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
     if (-not $winget) {
-        [System.Windows.MessageBox]::Show((T 'WinGet est indisponible. Relancez SENETECH Welcome apres installation de App Installer.' 'WinGet is unavailable. Retry SENETECH Welcome after installing App Installer.'),'SENETECH Welcome') | Out-Null
+        [System.Windows.MessageBox]::Show((T 'WinGet est indisponible. Relancez SENETECH Welcome apr{egrave}s l''installation d''App Installer.' 'WinGet is unavailable. Retry SENETECH Welcome after installing App Installer.'),'SENETECH Welcome') | Out-Null
         New-Item -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce' -Force | Out-Null
         Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'SENETECH Welcome' -Value ('powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $MyInvocation.MyCommand.Path + '"') -Force
         return
@@ -112,8 +128,8 @@ $install.Add_Click({
         } catch { $fail++ }
     }
     Mark-Completed ("installed=$ok failed=$fail")
-    $status.Text = T 'Installation terminee.' 'Installation completed.'
-    [System.Windows.MessageBox]::Show((T "Installation terminee : $ok reussie(s), $fail a verifier." "Installation completed: $ok succeeded, $fail to review."),'SENETECH Welcome') | Out-Null
+    $status.Text = T 'Installation termin{eacute}e.' 'Installation completed.'
+    [System.Windows.MessageBox]::Show((T "Installation termin{eacute}e : $ok r{eacute}ussie(s), $fail {agrave} v{eacute}rifier." "Installation completed: $ok succeeded, $fail to review."),'SENETECH Welcome') | Out-Null
     $window.Close()
 })
 
