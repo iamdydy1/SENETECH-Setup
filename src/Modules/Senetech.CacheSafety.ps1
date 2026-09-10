@@ -111,3 +111,11 @@ function Save-AppsForOffline($Apps) {
 
     Update-OfflineStatus
 }
+
+# Build 18 reporter is loaded as a late overlay instead of extending the nested
+# patch chain. It wraps the final active workflows and initializes after Delivery.
+$reporterBootstrap = Join-Path $script:EngineDir 'Modules\Senetech.ReporterBootstrap.ps1'
+if (-not (Test-Path -LiteralPath $reporterBootstrap)) {
+    throw 'Module SENETECH ReporterBootstrap V1.6.0.18 introuvable.'
+}
+. $reporterBootstrap
