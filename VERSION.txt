@@ -1,11 +1,13 @@
 SENETECH Setup
-Version 1.6.0.14
-Affichage : 1.6.0 DEV - build 14
+Version 1.6.0.15
+Affichage : 1.6.0 DEV - build 15
 Canal : Développeur
 Branche : develop
 Windows : 10 / 11
 Mode : Portable + Installé
 Mises à jour : GitHub + SHA-256 + rollback
+Correctif critique : démarrage restauré après la régression introduite par la correction d'orthographe
+Cause corrigée : doublons de clés dans la table de génération des accents PowerShell
 Nouveau : sauvegarde d'état avant préparation + SHA-256
 Nouveau : vérification initiale des prérequis
 Nouveau : détection des applications déjà installées avant téléchargement
@@ -14,4 +16,4 @@ Nouveau : intégrité du cache USB et conservation de l'ancien cache jusqu'à va
 Nouveau : contrôle final global avant validation du PC
 Correctif : WinGet bootstrap utilisé par l'installation principale
 Correctif : Windows Update signale Failed/Aborted comme échec
-Correctif : orthographe, DisplayName, aperçu anti-crash et interface responsive maintenus
+Correctif : DisplayName, aperçu anti-crash et interface responsive maintenus
