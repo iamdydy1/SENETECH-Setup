@@ -21,7 +21,7 @@ function Replace-BytePattern([byte[]]$Data,[byte[]]$Old,[byte[]]$New) {
 }
 
 # Repart de la V1.5.0 officielle afin que ce patch fonctionne aussi depuis V1.4.x.
-$basePatchUrl = 'https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/packages/v1.5.0/PATCH-SENETECH-1.5.0.ps1'
+$basePatchUrl = 'https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/packages/v1.5.0/PATCH-SENETECH-1.5.0-ENGINE.ps1'
 $basePatch = Join-Path $env:TEMP 'SENETECH-PATCH-1.5.0.ps1'
 Invoke-WebRequest -Uri $basePatchUrl -Headers $headers -OutFile $basePatch -UseBasicParsing
 $pa = '-NoProfile -ExecutionPolicy Bypass -File "{0}" -StageDir "{1}"' -f $basePatch,$StageDir
