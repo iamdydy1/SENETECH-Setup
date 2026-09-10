@@ -1,51 +1,51 @@
 # SENETECH Setup
 
-SENETECH est une application Windows de préparation, diagnostic, installation d'applications et maintenance légère de PC.
+**Base Stable officielle : V1.5.1**  
+Windows 10 / 11 • Portable + Installé • Mises à jour GitHub
 
-## Base Stable officielle
+## Pour les utilisateurs
 
-La base Stable actuelle est **SENETECH V1.5.1**.
+Ne téléchargez pas les fichiers du dépôt un par un et ne récupérez pas `SENETECH-Setup.exe` isolément.
+
+Deux méthodes sont prévues :
+
+1. **ZIP officiel SENETECH V1.5.1 FULL** : extraire entièrement le ZIP puis lancer `SENETECH-Setup.exe`.
+2. **`SENETECH-Download.cmd`** : télécharge automatiquement la version Stable dans `Téléchargements\SENETECH-Setup`, vérifie le package puis lance SENETECH.
+
+**Aucun compte GitHub n'est nécessaire.** Le dépôt est public et SENETECH utilise GitHub uniquement comme serveur de versions et de mises à jour.
+
+## Base Stable
 
 - Version : **1.5.1.0**
-- Canal public : **Stable**
-- Branche GitHub : **main**
-- Windows : **10 / 11**
+- Canal : **Stable**
+- Branche : **`main`**
 - Déploiement : **Portable + Installé**
-- Package officiel complet : `dist/SENETECH-Setup-V1.5.1-STABLE.zip`
-- SHA-256 : `81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a`
+- Mise à jour : activée
+- Windows : **10 / 11**
 
-**Le ZIP dans `dist/` est la référence Stable distribuée aux utilisateurs.** Il contient `SENETECH-Setup.exe`, le moteur `_SENETECH`, les assets et tous les fichiers runtime nécessaires.
+`version.json` est la source officielle utilisée par SENETECH pour connaître la version Stable disponible.
 
-## Une seule application, deux modes
+## Portable ou Installé
 
-### Mode Portable
+**Portable** : SENETECH fonctionne depuis un dossier ou une clé USB sans installation permanente.
 
-SENETECH fonctionne depuis une clé USB ou un dossier, sans installation. Depuis l'interface, il peut aussi être installé sur le PC.
+**Installé** : le même SENETECH peut être installé sur le PC avec ses raccourcis et sa désinstallation.
 
-### Mode Installé
+Il s'agit d'une seule application : le mode de déploiement ne change pas le système de mise à jour.
 
-SENETECH peut être installé dans `C:\Program Files\SENETECH`, avec raccourcis Bureau / menu Démarrer, entrée dans Applications installées et désinstallation.
+## Stable ou Développeur
 
-Portable et Installé restent la même application et utilisent le même système de mise à jour.
+- **Stable — `main`** : canal recommandé pour les clients et les PC vendus.
+- **Développeur — `develop`** : canal utilisé pour tester les prochaines modifications avant leur validation.
 
-## Deux canaux
+Depuis V1.5.1, le canal peut être choisi dans **Paramètres**. Une nouvelle installation destinée à un client démarre toujours en Stable.
 
-### Stable — `main`
+## Mises à jour
 
-Canal par défaut pour les clients et les PC vendus. Seules les versions validées doivent y être publiées.
-
-### Développeur — `develop`
-
-Canal de test. Les nouvelles fonctions sont développées et testées ici avant promotion sur `main`.
-
-Depuis V1.5.1, **Paramètres** permet de choisir Stable ou Développeur. Le choix est mémorisé localement. Une nouvelle installation client démarre toujours en Stable.
-
-## Mise à jour
-
-Le bouton **Mise à jour** consulte le `version.json` du canal choisi, télécharge le package, contrôle son SHA-256, ferme SENETECH, remplace les fichiers, relance l'application puis nettoie les fichiers temporaires.
+SENETECH vérifie le `version.json` du canal sélectionné. Lorsqu'une version plus récente existe, il la propose, télécharge les fichiers nécessaires, vérifie le package, ferme l'application, applique la mise à jour, redémarre SENETECH puis nettoie ses fichiers temporaires.
 
 ## Règle de développement
 
-**V1.5.1 Stable est la base de référence.** Toutes les prochaines modifications commencent sur `develop`. Après test et validation, une version peut être promue sur `main`.
+**V1.5.1 est notre base Stable.** Toutes les nouvelles modifications sont réalisées sur `develop`. Elles ne passent sur `main` qu'après test et validation.
 
-Ne jamais mettre de mot de passe, token GitHub ou clé privée dans ce dépôt public.
+Ne jamais publier de mot de passe, token GitHub ou clé privée dans ce dépôt public.
