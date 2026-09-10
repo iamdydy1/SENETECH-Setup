@@ -1,0 +1,142 @@
+            "<tr><td>$(Convert-Html $driver.DeviceClass)</td><td>$(Convert-Html $driver.DeviceName)</td><td>$(Convert-Html $driver.Manufacturer)</td><td>$(Convert-Html $driver.DriverVersion)</td><td>$date</td><td>$(if($driver.IsSigned){'Oui'}else{'Non'})</td></tr>"
+        }
+    }
+    $batteryText = if ($null -ne $info.Battery) {
+        $healthText = if ($null -ne $info.Battery.HealthPercent) { " - sante estimee : $($info.Battery.HealthPercent)%" } else { '' }
+        "Detectee - charge : $($info.Battery.Charge)%$healthText"
+    } else { 'Non detectee / ordinateur fixe' }
+    $storageIssue = @($info.Disks | Where-Object { $_.Health -notin @('Healthy','OK') }).Count -gt 0
+    $appIssue = @($installedApps | Where-Object { $_.Status -notin @('OK','WINDOWS UPDATE') }).Count -gt 0
+    $batteryIssue = $null -ne $info.Battery -and $null -ne $info.Battery.HealthPercent -and $info.Battery.HealthPercent -lt 60
+    $overall = if ($info.DeviceErrors.Count -eq 0 -and -not $storageIssue -and -not $appIssue -and -not $batteryIssue -and $info.Internet -and $info.Activation -eq 'Active') { 'VALIDE POUR CONTROLE VISUEL' } else { 'A CONTROLER' }
+    $overallClass = if ($overall -like 'VALIDE*') { 'ok' } else { 'warn' }
+    $notesRows = if ($script:OperationNotes.Count -eq 0) {
+        '<li>Aucune operation ignoree.</li>'
+    } else {
+        ($script:OperationNotes | ForEach-Object { "<li>$(Convert-Html $_)</li>" }) -join ''
+    }
+
+    $html = @"
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Rapport SENETECH</title>
+<style>body{font-family:Segoe UI,Arial;margin:36px;color:#172033}header{background:#101827;color:white;padding:24px;border-radius:12px}h1{margin:0}h2{margin-top:28px;color:#0369a1}table{border-collapse:collapse;width:100%}td,th{border:1px solid #d7dee8;padding:9px;text-align:left}th{background:#edf3f8}.ok{color:#15803d;font-weight:700}.warn{color:#b45309;font-weight:700}.note{background:#fff7ed;padding:12px;border-left:4px solid #f59e0b}</style></head><body>
+<header><h1>SENETECH - Rapport de preparation</h1><p>Genere le $(Get-Date -Format 'dd/MM/yyyy a HH:mm')</p></header>
+<h2>Conclusion</h2><p class="$overallClass">$overall</p>
+<h2>Ordinateur</h2><table>
+<tr><th>Fabricant / modele</th><td>$(Convert-Html "$($info.Manufacturer) $($info.Model)")</td></tr>
+<tr><th>Numero de serie</th><td>$(Convert-Html $info.Serial)</td></tr><tr><th>Nom Windows</th><td>$(Convert-Html $info.ComputerName)</td></tr>
+<tr><th>Processeur</th><td>$(Convert-Html $info.CPU)</td></tr><tr><th>RAM</th><td>$($info.RAMGB) Go</td></tr>
+<tr><th>Carte graphique</th><td>$(Convert-Html $info.GPU)</td></tr><tr><th>Windows</th><td>$(Convert-Html $info.Windows)</td></tr>
+<tr><th>Compatibilite SENETECH</th><td>$(Convert-Html $info.WindowsSupport)</td></tr><tr><th>Architecture applications</th><td>$(Convert-Html $info.AppArchitecture)</td></tr>
+<tr><th>Activation</th><td>$(Convert-Html $info.Activation)</td></tr><tr><th>Internet</th><td>$(if($info.Internet){'Connecte'}else{'Non connecte'})</td></tr>
+<tr><th>Batterie</th><td>$(Convert-Html $batteryText)</td></tr></table>
+<h2>Composants detectes</h2><table><tr><th>Wi-Fi</th><th>Bluetooth</th><th>Audio</th><th>Camera</th></tr><tr><td>$(Convert-Html $info.Components.Wifi)</td><td>$(Convert-Html $info.Components.Bluetooth)</td><td>$(Convert-Html $info.Components.Audio)</td><td>$(Convert-Html $info.Components.Camera)</td></tr></table>
+<h2>Stockage et SMART</h2><table><tr><th>Modele</th><th>Bus</th><th>Capacite</th><th>Sante</th><th>Temperature</th><th>Usure</th><th>Heures</th></tr>$($diskRows -join '')</table>
+<h2>Peripheriques en erreur</h2><table><tr><th>Nom</th><th>Code</th><th>Identifiant</th></tr>$($errorRows -join '')</table>
+<h2>Applications traitees</h2><table><tr><th>Application</th><th>Version detectee</th><th>Resultat</th><th>Source</th><th>Langue demandee</th><th>Code</th></tr>$($appRows -join '')</table>
+<h2>Pilotes principaux</h2><table><tr><th>Classe</th><th>Peripherique</th><th>Fabricant</th><th>Version</th><th>Date</th><th>Signe</th></tr>$($driverRows -join '')</table>
+<h2>Operations ignorees ou a terminer</h2><ul>$notesRows</ul>
+<p class="note">La detection d'un composant ne confirme pas son fonctionnement physique. Testez l'ecran, le clavier, les ports, la webcam, le son, le Wi-Fi, le Bluetooth, le chargeur et la memoire avant la vente.</p>
+</body></html>
+"@
+    [System.IO.File]::WriteAllText($report, $html, [System.Text.Encoding]::UTF8)
+    if ($null -ne $info.Battery) {
+        $batteryReport = Join-Path $script:ReportDir ("Batterie-{0}-{1}.html" -f $safeName, $script:SessionStamp)
+        Start-Process powercfg.exe -ArgumentList @('/batteryreport','/output',('"' + $batteryReport + '"')) -Wait -WindowStyle Hidden
+    }
+    return $report
+}
+
+function Set-ControlsEnabled([bool]$Enabled) {
+    $script:IsBusy = -not $Enabled
+    $script:UpdateButton.IsEnabled = $Enabled
+    $script:AnalyzeButton.IsEnabled = $Enabled
+    $script:StartButton.IsEnabled = $Enabled
+    $script:ProfileCombo.IsEnabled = $Enabled
+    foreach ($app in $appMap.Values) { $app.Check.IsEnabled = $Enabled }
+    $script:AppsCheck.IsEnabled = $Enabled
+    $script:UpdatesCheck.IsEnabled = $Enabled
+    $script:DriversCheck.IsEnabled = $Enabled
+    $script:GpuHelperCheck.IsEnabled = $Enabled
+    $script:DiagnosticCheck.IsEnabled = $Enabled
+    if (-not $script:IsInstalledMode) {
+        $script:InstallSenetechButton.IsEnabled = $Enabled
+        $script:InstallAfterPrepCheck.IsEnabled = $Enabled
+    }
+    $script:OpenInstallFolderButton.IsEnabled = $Enabled
+    $script:CacheButton.IsEnabled = $Enabled
+    $script:ExportDriversButton.IsEnabled = $Enabled
+    $script:AutoCacheCheck.IsEnabled = $Enabled
+}
+
+$UpdateButton.Add_Click({
+    Invoke-SenetechUpdateCheck
+})
+
+
+$InstallSenetechButton.Add_Click({
+    try {
+        Set-ControlsEnabled $false
+        Set-Progress 15 'Installation de SENETECH sur ce PC'
+        $installed = Install-SenetechOnThisPc
+        if ($installed) {
+            Set-Progress 100 'SENETECH installe'
+        } else {
+            Set-Progress 0 'Installation annulee'
+        }
+    } catch {
+        Write-Log ('Echec installation SENETECH : {0}' -f $_.Exception.Message) 'ERREUR'
+        Set-Progress 0 'Erreur installation SENETECH'
+        [System.Windows.MessageBox]::Show($_.Exception.Message, 'SENETECH - Installation') | Out-Null
+    } finally {
+        if ($window.IsVisible) { Set-ControlsEnabled $true }
+    }
+})
+
+$OpenInstallFolderButton.Add_Click({
+    if (Test-Path -LiteralPath $script:Root) {
+        Start-Process -FilePath 'explorer.exe' -ArgumentList ('"{0}"' -f $script:Root) | Out-Null
+    }
+})
+
+$ProfileCombo.Add_SelectionChanged({
+    if ($ProfileCombo.SelectedItem) { Set-Profile ([string]$ProfileCombo.SelectedItem.Content) }
+})
+
+$AnalyzeButton.Add_Click({
+    try {
+        Set-ControlsEnabled $false
+        Set-Progress 5 'Analyse en cours'
+        $script:Hardware = Get-HardwareSnapshot
+        Update-HardwareUi $script:Hardware
+        Write-Log ("PC detecte : {0} {1}" -f $script:Hardware.Manufacturer, $script:Hardware.Model) 'OK'
+        Write-Log ("Compatibilite : {0} | applications {1}" -f $script:Hardware.WindowsSupport, $script:Hardware.AppArchitecture)
+        if ($script:Hardware.WindowsBuild -lt 10240) { Write-Log 'Cette version de Windows n est plus prise en charge par Microsoft. Utilisez surtout le diagnostic et le cache USB.' 'ATTENTION' }
+        Write-Log ("Peripheriques en erreur : {0}" -f $script:Hardware.DeviceErrors.Count)
+        Set-Progress 100 'Analyse terminee'
+        if ($script:Hardware.Internet -and $script:AutoCacheCheck.IsChecked -eq $true) { Invoke-AutoCacheUpdate }
+    } catch {
+        Write-Log $_.Exception.Message 'ERREUR'
+        [System.Windows.MessageBox]::Show($_.Exception.Message, 'Erreur d''analyse') | Out-Null
+        Set-Progress 0 'Erreur'
+    } finally { Set-ControlsEnabled $true }
+})
+
+$ReportButton.Add_Click({
+    if ($script:LastReport -and (Test-Path $script:LastReport)) { Start-Process $script:LastReport }
+})
+
+$CacheButton.Add_Click({
+    $selectedApps = @(Get-SelectedApps)
+    $answer = [System.Windows.MessageBox]::Show(
+        "Les installateurs des applications selectionnees seront telecharges sur la cle. Cela peut utiliser plusieurs Go. Continuer ?",
+        'Cache hors ligne SENETECH', [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Question)
+    if ($answer -ne [System.Windows.MessageBoxResult]::Yes) { return }
+    try {
+        Set-ControlsEnabled $false
+        Set-Progress 10 'Preparation du cache hors ligne'
+        Save-AppsForOffline $selectedApps
+        Set-Progress 100 'Cache hors ligne prepare'
+        [System.Windows.MessageBox]::Show('Telechargement termine. Consultez le journal pour les applications eventuellement indisponibles.', 'SENETECH Setup') | Out-Null
+    } catch {
+        Write-Log $_.Exception.Message 'ERREUR'
+        Set-Progress 0 'Cache interrompu'
