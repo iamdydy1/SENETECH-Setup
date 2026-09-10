@@ -1,123 +1,49 @@
 param(
-    [Parameter(Mandatory=$false)]
-    [string]$CurrentVersion = "1.4.2.0",
-
-    [Parameter(Mandatory=$false)]
+    [string]$CurrentVersion = '1.5.1.0',
     [string]$InstallDir = (Split-Path -Parent $MyInvocation.MyCommand.Path),
-
-    [Parameter(Mandatory=$false)]
+    [string]$UpdateChannel = 'stable',
     [int]$HostProcessId = 0,
-
-    [Parameter(Mandatory=$false)]
     [switch]$Silent
 )
 
-$ErrorActionPreference = "Stop"
-$ManifestUrl = "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/version.json"
-$UpdaterUrl = "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/UPDATE-SENETECH.ps1"
+$ErrorActionPreference = 'Stop'
+$UpdateChannel = if ($UpdateChannel.ToLowerInvariant() -eq 'develop') { 'develop' } else { 'stable' }
+$Branch = if ($UpdateChannel -eq 'develop') { 'develop' } else { 'main' }
+$ManifestUrl = "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/$Branch/version.json"
+$UpdaterUrl = "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/$Branch/UPDATE-SENETECH.ps1"
 
-function Show-Info([string]$Message, [string]$Title = "SENETECH Setup") {
+function Message([string]$Text,[string]$Title='SENETECH Setup',[bool]$Error=$false) {
     if ($Silent) { return }
     Add-Type -AssemblyName System.Windows.Forms
-    [System.Windows.Forms.MessageBox]::Show(
-        $Message,
-        $Title,
-        [System.Windows.Forms.MessageBoxButtons]::OK,
-        [System.Windows.Forms.MessageBoxIcon]::Information
-    ) | Out-Null
-}
-
-function Show-ErrorBox([string]$Message) {
-    if ($Silent) { return }
-    Add-Type -AssemblyName System.Windows.Forms
-    [System.Windows.Forms.MessageBox]::Show(
-        $Message,
-        "SENETECH - Mise a jour",
-        [System.Windows.Forms.MessageBoxButtons]::OK,
-        [System.Windows.Forms.MessageBoxIcon]::Error
-    ) | Out-Null
-}
-
-function Ask-Update([string]$RemoteVersion, [string[]]$Notes, [bool]$Mandatory) {
-    if ($Silent) { return $false }
-
-    Add-Type -AssemblyName System.Windows.Forms
-
-    $notesText = ""
-    if ($Notes -and $Notes.Count -gt 0) {
-        $notesText = "`r`n`r`nNouveautes :`r`n- " + ($Notes -join "`r`n- ")
-    }
-
-    $prefix = "Une nouvelle version de SENETECH est disponible.`r`n`r`nVersion installee : $CurrentVersion`r`nNouvelle version : $RemoteVersion"
-    if ($Mandatory) {
-        $prefix += "`r`n`r`nCette mise a jour est marquee comme importante."
-    }
-
-    $message = $prefix + $notesText + "`r`n`r`nVoulez-vous l'installer maintenant ?"
-
-    $result = [System.Windows.Forms.MessageBox]::Show(
-        $message,
-        "SENETECH - Mise a jour disponible",
-        [System.Windows.Forms.MessageBoxButtons]::YesNo,
-        [System.Windows.Forms.MessageBoxIcon]::Information
-    )
-
-    return ($result -eq [System.Windows.Forms.DialogResult]::Yes)
+    $icon = if ($Error) { [System.Windows.Forms.MessageBoxIcon]::Error } else { [System.Windows.Forms.MessageBoxIcon]::Information }
+    [System.Windows.Forms.MessageBox]::Show($Text,$Title,[System.Windows.Forms.MessageBoxButtons]::OK,$icon) | Out-Null
 }
 
 try {
-    try {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    } catch {}
+    try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
+    $headers = @{ 'User-Agent' = "SENETECH-Setup/$CurrentVersion" }
+    $m = Invoke-RestMethod -Uri $ManifestUrl -Headers $headers -UseBasicParsing
+    if (-not $m.enabled) { Message 'Le service de mise a jour est temporairement desactive.'; exit 0 }
+    $local = New-Object Version($CurrentVersion)
+    $remote = New-Object Version([string]$m.version)
+    if ($remote -le $local) { Message "SENETECH V$($m.displayVersion) est deja a jour.`r`nCanal : $UpdateChannel"; exit 0 }
 
-    $headers = @{ "User-Agent" = "SENETECH-Setup/$CurrentVersion" }
-    $manifest = Invoke-RestMethod -Uri $ManifestUrl -Headers $headers -UseBasicParsing
-
-    if (-not $manifest.enabled) {
-        Show-Info "Le service de mise a jour SENETECH est configure, mais les mises a jour distantes ne sont pas encore activees."
-        exit 0
+    if (-not $Silent) {
+        Add-Type -AssemblyName System.Windows.Forms
+        $notes = if ($m.releaseNotes) { "`r`n`r`nNouveautes :`r`n- " + (@($m.releaseNotes) -join "`r`n- ") } else { '' }
+        $text = "Une nouvelle version de SENETECH est disponible.`r`n`r`nVersion installee : $CurrentVersion`r`nNouvelle version : $($m.displayVersion)`r`nCanal : $UpdateChannel$notes`r`n`r`nVoulez-vous l'installer maintenant ?"
+        $r = [System.Windows.Forms.MessageBox]::Show($text,'SENETECH - Mise a jour disponible',[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
+        if ($r -ne [System.Windows.Forms.DialogResult]::Yes) { exit 2 }
     }
 
-    $local = New-Object System.Version($CurrentVersion)
-    $remote = New-Object System.Version([string]$manifest.version)
-
-    if ($remote -le $local) {
-        Show-Info "SENETECH V$($manifest.displayVersion) est deja a jour."
-        exit 0
-    }
-
-    $notes = @()
-    if ($manifest.releaseNotes) {
-        $notes = @($manifest.releaseNotes | ForEach-Object { [string]$_ })
-    }
-
-    $accepted = Ask-Update -RemoteVersion ([string]$manifest.displayVersion) -Notes $notes -Mandatory ([bool]$manifest.mandatory)
-    if (-not $accepted) {
-        exit 2
-    }
-
-    $updaterPath = Join-Path $env:TEMP "SENETECH-UPDATE-SERVICE.ps1"
-    Invoke-WebRequest -Uri $UpdaterUrl -Headers $headers -OutFile $updaterPath -UseBasicParsing
-
-    $args = @(
-        "-NoProfile",
-        "-ExecutionPolicy", "Bypass",
-        "-File", ('"' + $updaterPath + '"'),
-        "-CurrentVersion", ('"' + $CurrentVersion + '"'),
-        "-InstallDir", ('"' + $InstallDir + '"')
-    )
-
-    if ($HostProcessId -gt 0) {
-        $args += @("-WaitForProcessId", [string]$HostProcessId)
-    }
-
-    Start-Process -FilePath "powershell.exe" -ArgumentList ($args -join " ") -WindowStyle Hidden
-
-    # Exit code 10 = la mise a jour a ete acceptee.
-    # L'application hote doit alors se fermer pour permettre son remplacement.
+    $updater = Join-Path $env:TEMP 'SENETECH-UPDATE-SERVICE.ps1'
+    Invoke-WebRequest -Uri $UpdaterUrl -Headers $headers -OutFile $updater -UseBasicParsing
+    $args = @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"'+$updater+'"'),'-CurrentVersion',('"'+$CurrentVersion+'"'),'-InstallDir',('"'+$InstallDir+'"'),'-UpdateChannel',('"'+$UpdateChannel+'"'))
+    if ($HostProcessId -gt 0) { $args += @('-WaitForProcessId',[string]$HostProcessId) }
+    Start-Process powershell.exe -ArgumentList ($args -join ' ') -WindowStyle Hidden
     exit 10
 }
 catch {
-    Show-ErrorBox "Impossible de verifier les mises a jour SENETECH.`r`n`r`n$($_.Exception.Message)"
+    Message "Impossible de verifier les mises a jour SENETECH.`r`n`r`n$($_.Exception.Message)" 'SENETECH - Mise a jour' $true
     exit 1
 }
