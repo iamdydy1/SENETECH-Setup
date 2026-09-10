@@ -4,4 +4,5 @@ Canal : Stable
 Branche : main
 Windows : 10 / 11
 Mode : Portable + Installe
-Mises a jour : GitHub + SHA-256
+Distribution : GitHub Releases
+Integrite : SHA-256
