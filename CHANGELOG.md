@@ -1,5 +1,22 @@
 # Changelog SENETECH Setup — Develop
 
+## V1.6.0.8 DEV — 2026-09-10
+
+- Ajout du module `Senetech.Display.ps1` pour adapter automatiquement la fenêtre à la résolution et au DPI Windows.
+- Sur les petits écrans, notamment 1366×768, SENETECH passe automatiquement en mode **Compact** et utilise toute la zone de travail disponible.
+- Sur les écrans Full HD et supérieurs, la fenêtre conserve des dimensions confortables sans dépasser la zone visible.
+- Les dimensions minimales/maximales sont adaptées au poste afin d'éviter les éléments coupés ou hors écran.
+- WPF conserve la gestion DPI native ; SENETECH ne modifie pas la résolution Windows de l'utilisateur.
+- Le journal affiche la résolution détectée, le DPI, le pourcentage de mise à l'échelle et le profil d'affichage choisi.
+- La Stable V1.5.1 reste inchangée ; ce correctif doit être validé sur le laptop avant promotion.
+
+## V1.6.0.7 DEV — 2026-09-10
+
+- Correction du cas Windows 10 où **Microsoft Desktop App Installer est déjà installé dans une version récente**, mais où `winget.exe` n'est pas résolu par l'alias WindowsApps.
+- SENETECH recherche directement `winget.exe` dans le dossier du package App Installer installé.
+- Si nécessaire, SENETECH réenregistre l'`AppxManifest.xml` du package existant au lieu de tenter une rétrogradation.
+- La version App Installer déjà installée est conservée.
+
 ## V1.6.0.6 DEV — 2026-09-10
 
 - Sur un Windows 10/11 fraîchement installé, SENETECH ne s'arrête plus simplement sur **« WinGet est introuvable »**.
