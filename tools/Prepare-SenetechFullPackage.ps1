@@ -106,6 +106,29 @@ try {
         }
     }
 
+    # Normalize runtime context for full-package builds.
+    # Stable is only the binary base. Force the selected channel before modules load.
+    $enginePath = Join-Path $OutputDir '_SENETECH\SENETECH-Setup.ps1'
+    $engineText = [IO.File]::ReadAllText($enginePath)
+    $loaderNeedle = '$catalogModule = Join-Path $script:EngineDir ''Modules\Senetech.Catalog.ps1'''
+    if (-not $engineText.Contains($loaderNeedle)) {
+        throw 'Contexte full-package impossible : chargeur catalogue introuvable.'
+    }
+
+    $buildChannel = [string]$manifest.channel
+    $buildBranch = if ($buildChannel -eq 'develop') { 'develop' } else { 'main' }
+    $contextBlock = @"
+# SENETECH full-package build context.
+`$script:UpdateChannel = '$buildChannel'
+`$script:UpdateBranch = '$buildBranch'
+`$senetechInstalledMarker = Join-Path `$script:Root 'SENETECH-INSTALLED.flag'
+if (Test-Path -LiteralPath `$senetechInstalledMarker) {
+    `$script:IsInstalledMode = `$true
+}
+"@
+    $engineText = $engineText.Replace($loaderNeedle, ($contextBlock.TrimEnd() + "`r`n" + $loaderNeedle))
+    [IO.File]::WriteAllText($enginePath,$engineText,(New-Object System.Text.UTF8Encoding($true)))
+    Write-Host "[SENETECH] Contexte runtime normalise : canal=$buildChannel branche=$buildBranch"
     $required = @('SENETECH-Setup.exe','_SENETECH\SENETECH-Setup.ps1','_SENETECH\SENETECH-Setup.manifest')
     if ($manifest.PSObject.Properties.Name -contains 'requiredFiles' -and $manifest.requiredFiles) {
         $required += @($manifest.requiredFiles | ForEach-Object { [string]$_ })
