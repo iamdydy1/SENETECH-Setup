@@ -21,7 +21,7 @@ set "UPDATER_URL=https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/
 echo.
 echo ============================================================
 echo   SENETECH SETUP - INSTALLATION STABLE
-necho ============================================================
+echo ============================================================
 echo.
 echo Destination : %TARGET%
 echo Mode        : INSTALLE
