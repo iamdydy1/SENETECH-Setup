@@ -1,0 +1,171 @@
+            $null -ne $nameProperty -and [string]$nameProperty.Value -like "*$Pattern*"
+        })
+        $entry = $entries | Sort-Object {
+            $versionProperty = $_.PSObject.Properties['DisplayVersion']
+            if ($null -ne $versionProperty) { [string]$versionProperty.Value } else { '' }
+        } -Descending | Select-Object -First 1
+        if ($null -ne $entry) {
+            $versionProperty = $entry.PSObject.Properties['DisplayVersion']
+            if ($null -ne $versionProperty -and $versionProperty.Value) { return [string]$versionProperty.Value }
+            return 'Installee'
+        }
+    } catch {
+        Write-Log ("Version non lisible pour {0}, poursuite de l'installation." -f $Pattern) 'ATTENTION'
+    }
+    return '-'
+}
+
+function Get-AppCacheDirectory($app) {
+    $safeId = ([string]$app.Id -replace '[^A-Za-z0-9._-]', '_')
+    return Join-Path $script:OfflineAppDir $safeId
+}
+
+function Get-CachedInstaller($app) {
+    $folder = Get-AppCacheDirectory $app
+    if (-not (Test-Path $folder)) { return $null }
+    return Get-ChildItem -LiteralPath $folder -File -Recurse -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -notmatch '[\\/]_nouveau-' -and $_.Extension -in @('.msi','.exe','.msix','.msixbundle','.appx','.appxbundle') } |
+        Sort-Object LastWriteTime -Descending | Select-Object -First 1
+}
+
+function Get-CachedInstallerLocale($app) {
+    $localeFile = Join-Path (Get-AppCacheDirectory $app) 'SENETECH-Langue.txt'
+    if (Test-Path -LiteralPath $localeFile) {
+        $value = Get-Content -LiteralPath $localeFile -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($value) { return [string]$value }
+    }
+    return 'Automatique'
+}
+
+function Update-OfflineStatus {
+    $cached = 0
+    foreach ($app in $appMap.Values) { if ($null -ne (Get-CachedInstaller ([pscustomobject]$app))) { $cached++ } }
+    $drivers = @(Get-ChildItem -LiteralPath $script:OfflineDriverDir -Filter '*.inf' -File -Recurse -ErrorAction SilentlyContinue).Count
+    $script:OfflineStatusText.Text = "$cached application(s) en cache | $drivers pilote(s) INF"
+}
+
+function Get-CachedApps {
+    $cachedApps = @()
+    foreach ($app in $appMap.Values) {
+        $candidate = [pscustomobject]$app
+        if ($null -ne (Get-CachedInstaller $candidate)) { $cachedApps += $candidate }
+    }
+    return @($cachedApps)
+}
+
+function Invoke-AutoCacheUpdate {
+    if ($script:AutoCacheCheck.IsChecked -ne $true -or -not (Test-Internet)) { return }
+    $cachedApps = @(Get-CachedApps)
+    if ($cachedApps.Count -eq 0) {
+        Write-Log 'Internet detecte, mais le cache est vide. Utilisez une premiere fois le bouton de telechargement.'
+        return
+    }
+    try {
+        Set-ControlsEnabled $false
+        Set-Progress 10 'Mise a jour automatique du cache USB'
+        Write-Log ("Internet detecte : actualisation de {0} application(s) deja en cache." -f $cachedApps.Count)
+        Save-AppsForOffline $cachedApps
+        Set-Progress 100 'Cache USB actualise'
+        Write-Log 'Actualisation automatique du cache terminee.' 'OK'
+    } catch {
+        Write-Log ("Actualisation automatique impossible : {0}" -f $_.Exception.Message) 'ATTENTION'
+    } finally { Set-ControlsEnabled $true }
+}
+
+function Save-AppsForOffline($apps) {
+    $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
+    if (-not $winget) { throw 'WinGet est introuvable. Ouvrez Microsoft Store, mettez a jour App Installer, puis relancez SENETECH.' }
+    if (-not (Test-Internet)) { throw 'Internet est necessaire pour preparer le cache hors ligne.' }
+    if ($apps.Count -eq 0) { throw 'Selectionnez au moins une application a mettre en cache.' }
+
+    $locale = Get-PreferredLocale
+    Write-Log ("Langue preferee des installateurs : {0}" -f $locale)
+    $index = 0
+    foreach ($app in $apps) {
+        $index++
+        $folder = Get-AppCacheDirectory $app
+        New-Item -ItemType Directory -Force -Path $folder | Out-Null
+        $staging = Join-Path $folder ("_nouveau-{0}-{1}" -f $script:SessionStamp, $index)
+        New-Item -ItemType Directory -Force -Path $staging | Out-Null
+        $downloadLocale = $locale
+        Write-Log ("Telechargement hors ligne de {0} ({1}/{2})..." -f $app.Name, $index, $apps.Count)
+        $arguments = @('download','--id',$app.Id,'--exact','--architecture',(Get-AppArchitecture),'--locale',$locale,'--download-directory',('"' + $staging + '"'),
+          '--skip-license','--accept-package-agreements','--accept-source-agreements','--disable-interactivity')
+        $code = Invoke-ProcessVisible -FilePath $winget.Source -Arguments $arguments
+        if ($code -ne 0) {
+            Write-Log ("Version {0} indisponible pour {1}, nouvel essai avec la langue par defaut de l'editeur." -f $locale, $app.Name) 'ATTENTION'
+            $downloadLocale = 'Editeur / automatique'
+            $arguments = @('download','--id',$app.Id,'--exact','--architecture',(Get-AppArchitecture),'--download-directory',('"' + $staging + '"'),
+              '--skip-license','--accept-package-agreements','--accept-source-agreements','--disable-interactivity')
+            $code = Invoke-ProcessVisible -FilePath $winget.Source -Arguments $arguments
+        }
+        $newInstaller = Get-ChildItem -LiteralPath $staging -File -Recurse -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -in @('.msi','.exe','.msix','.msixbundle','.appx','.appxbundle') } |
+            Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        if ($code -eq 0 -and $null -ne $newInstaller) {
+            # Une application = une seule version en cache. Une fois le nouveau
+            # telechargement valide, on retire l'ancien contenu avant de promouvoir
+            # la nouvelle version. Le dossier de staging est evidemment conserve.
+            Get-ChildItem -LiteralPath $folder -Force -ErrorAction SilentlyContinue |
+                Where-Object { $_.FullName -ne $staging } |
+                Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+            Get-ChildItem -LiteralPath $staging -Force | Move-Item -Destination $folder -Force
+            Set-Content -LiteralPath (Join-Path $folder 'SENETECH-Langue.txt') -Value $downloadLocale -Encoding UTF8
+            Write-Log ("Cache actualise : {0} (ancienne version supprimee)" -f $newInstaller.Name) 'OK'
+        } elseif ($null -ne (Get-CachedInstaller $app)) {
+            Write-Log ("Telechargement impossible, ancien installateur conserve pour {0}." -f $app.Name) 'ATTENTION'
+        } else {
+            Write-Log ("Impossible de mettre {0} en cache (code {1})." -f $app.Name, $code) 'ATTENTION'
+        }
+        if (Test-Path -LiteralPath $staging) { Remove-Item -LiteralPath $staging -Recurse -Force }
+    }
+    Update-OfflineStatus
+}
+
+function Invoke-OfflineInstaller($app, $installer) {
+    $extension = $installer.Extension.ToLowerInvariant()
+    if ($extension -eq '.msi') {
+        return Invoke-ProcessVisible -FilePath 'msiexec.exe' -Arguments @('/i',('"' + $installer.FullName + '"'),'/qn','/norestart')
+    }
+    if ($extension -in @('.msix','.msixbundle','.appx','.appxbundle')) {
+        try { Add-AppxPackage -Path $installer.FullName -ForceApplicationShutdown; return 0 }
+        catch { Write-Log $_.Exception.Message 'ATTENTION'; return 1 }
+    }
+
+    $silent = switch ($app.Id) {
+        'Google.Chrome' { @('/silent','/install') }
+        'Mozilla.Firefox' { @('/S') }
+        '7zip.7zip' { @('/S') }
+        'VideoLAN.VLC' { @('/S') }
+        { $_ -in @('Adobe.Acrobat.Reader.64-bit','Adobe.Acrobat.Reader.32-bit') } { @('/sAll','/rs','/rps','/msi','EULA_ACCEPT=YES'); break }
+        'TheDocumentFoundation.LibreOffice' { @('/S') }
+        'Zoom.Zoom' { @('/silent') }
+        'Discord.Discord' { @('-s') }
+        'Valve.Steam' { @('/S') }
+        'EpicGames.EpicGamesLauncher' { @('/quiet','/norestart') }
+        'ElectronicArts.EADesktop' { @('/silent') }
+        'Ubisoft.Connect' { @('/S') }
+        'Blizzard.BattleNet' { @('/S') }
+        'GOG.Galaxy' { @('/VERYSILENT','/NORESTART') }
+        'OBSProject.OBSStudio' { @('/S') }
+        { $_ -in @('Microsoft.VCRedist.2015+.x64','Microsoft.VCRedist.2015+.x86') } { @('/install','/quiet','/norestart'); break }
+        'Microsoft.DirectX' { @('/Q') }
+        'Nvidia.NVIDIAApp' { @('-s') }
+        'Intel.IntelDriverAndSupportAssistant' { @('-s') }
+        default { @('/S') }
+    }
+    return Invoke-ProcessVisible -FilePath $installer.FullName -Arguments $silent
+}
+
+function Install-SelectedApps($apps) {
+    $online = Test-Internet
+    $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
+    $useWinget = $online -and $null -ne $winget
+    if ($online -and -not $winget) { Write-Log 'WinGet est absent : utilisation du cache USB disponible.' 'ATTENTION' }
+
+    $locale = Get-PreferredLocale
+    Write-Log ("Langue Windows detectee pour les applications : {0}" -f $locale)
+    $index = 0
+    $results = @()
+    foreach ($app in $apps) {
+        $index++
