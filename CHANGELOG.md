@@ -3,16 +3,18 @@
 ## V1.5.1 — Stable — 2026-09-10
 
 - Base Stable officielle de SENETECH.
+- Publication de la première **GitHub Release Stable**.
+- Package officiel : `SENETECH-Setup-V1.5.1-FULL-STABLE.zip`.
 - Une seule application avec modes **Portable** et **Installé**.
-- Ajout des canaux **Stable (`main`)** et **Développeur (`develop`)**.
-- Ajout du choix du canal depuis **Paramètres**.
+- Canaux **Stable (`main`)** et **Développeur (`develop`)**.
+- Choix du canal depuis **Paramètres**.
 - Nouvelles installations configurées en Stable par défaut.
-- Mise à jour GitHub avec téléchargement du package complet.
-- Vérification SHA-256 avant application d'une mise à jour.
+- Mise à jour par téléchargement du package complet depuis GitHub Releases.
+- Vérification de la taille du package et du SHA-256 avant installation.
+- Vérification de la présence de l'EXE, du moteur PowerShell et du manifeste avant application.
 - Redémarrage automatique après remplacement des fichiers.
 - Nettoyage automatique des fichiers temporaires de mise à jour.
-- Package Stable complet avec `SENETECH-Setup.exe`, moteur PowerShell et assets.
-- Nettoyage du dépôt : suppression des anciens packages intermédiaires V1.4.x / V1.5.0 et des workflows de construction devenus inutiles.
+- Suppression des anciens packages intermédiaires et fragments de distribution du dépôt actif.
 
 ## V1.5.0
 
@@ -20,7 +22,7 @@
 
 ## V1.4.3
 
-- Premier test réussi du mécanisme de mise à jour via GitHub.
+- Premier test du mécanisme de mise à jour via GitHub.
 
 ## V1.4.2
 
