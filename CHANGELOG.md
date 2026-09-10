@@ -1,4 +1,12 @@
-# Changelog SENETECH Setup
+# Changelog SENETECH Setup — Stable
+
+> Ce fichier contient uniquement les versions officiellement validées et publiées sur le canal Stable (`main`). Les builds de test `develop` restent dans le changelog DEV et ne sont ajoutées ici qu'après validation et promotion explicite.
+
+## État Stable actuel
+
+- Version Stable active : **V1.5.1**.
+- Aucune build V1.6 DEV n'est considérée Stable à ce jour.
+- Les changements V1.6 seront reportés ici uniquement après validation complète Windows 10/11, Portable/Installé, mises à jour, applications, rollback et Livraison/OOBE.
 
 ## V1.5.1 — Stable — 2026-09-10
 
