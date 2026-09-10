@@ -18,8 +18,7 @@ function Convert-WelcomeFrenchText([string]$Text) {
         '{agrave}'=[string]([char]0x00E0); '{cced}'=[string]([char]0x00E7)
         '{eacute}'=[string]([char]0x00E9); '{egrave}'=[string]([char]0x00E8)
         '{ecirc}'=[string]([char]0x00EA); '{ocirc}'=[string]([char]0x00F4)
-        '{ugrave}'=[string]([char]0x00F9); '{Agrave}'=[string]([char]0x00C0)
-        '{Eacute}'=[string]([char]0x00C9)
+        '{ugrave}'=[string]([char]0x00F9)
     }
     $value = $Text
     foreach ($token in $map.Keys) { $value = $value.Replace($token,$map[$token]) }
