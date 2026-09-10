@@ -1,15 +1,15 @@
 SENETECH Setup
-Version 1.6.0.12
-Affichage : 1.6.0 DEV - build 12
-Canal : Developpeur
+Version 1.6.0.13
+Affichage : 1.6.0 DEV - build 13
+Canal : Développeur
 Branche : develop
 Windows : 10 / 11
-Mode : Portable + Installe
-Mises a jour : GitHub + SHA-256 + rollback
-Correctif : reinjection du correctif inventaire DisplayName
-Correctif : build technique visible dans l interface
-Correctif : apercu applications Livraison anti-crash sous Windows PowerShell 5.1
-Correctif : fenetre Livraison/Vente lisible et responsive sur petits ecrans
-Correctif : interface principale responsive selon resolution et DPI Windows
-Correctif : App Installer deja present -> reactivation de WinGet sans retrogradation
+Mode : Portable + Installé
+Mises à jour : GitHub + SHA-256 + rollback
+Correctif : orthographe, accents et formulations françaises de l'interface
+Correctif : profils Étudiant, Créateur, Développement, PC léger et Personnalisé
+Correctif : aperçu applications Livraison anti-crash sous Windows PowerShell 5.1
+Correctif : inventaire compatible avec les entrées registre sans DisplayName
+Correctif : interface principale et Livraison/Vente responsive
+Correctif : App Installer déjà présent -> réactivation de WinGet sans rétrogradation
 Nouveau : Livraison / Vente + OOBE + SENETECH Welcome
