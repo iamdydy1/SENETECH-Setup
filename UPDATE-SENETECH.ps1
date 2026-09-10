@@ -16,6 +16,7 @@ $StageDir = Join-Path $TempRoot 'stage'
 $BackupDir = Join-Path $TempRoot 'backup'
 $LogPath = Join-Path $env:TEMP 'SENETECH-Update.log'
 $CleanupScript = Join-Path $env:TEMP 'SENETECH-Cleanup.cmd'
+$RestartScript = Join-Path $env:TEMP 'SENETECH-Restart.ps1'
 
 function Write-UpdateLog([string]$Text) {
     $line = '[{0}] [{1}] {2}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $UpdateChannel.ToUpperInvariant(), $Text
@@ -86,6 +87,7 @@ try {
 
     Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item $CleanupScript -Force -ErrorAction SilentlyContinue
+    Remove-Item $RestartScript -Force -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Path $StageDir,$BackupDir -Force | Out-Null
 
     Write-UpdateLog "Downloading base package for SENETECH $($manifest.version)"
@@ -155,23 +157,63 @@ if not errorlevel 1 (
 )
 "@
     }
+
+    $exePath = Join-Path $InstallDir 'SENETECH-Setup.exe'
     $restartLine = ''
-    if (-not $NoRestart) { $exePath = Join-Path $InstallDir 'SENETECH-Setup.exe'; $restartLine = 'start "" "' + $exePath + '"' }
+    if (-not $NoRestart) {
+        $restartHelper = @'
+param(
+    [Parameter(Mandatory=$true)][string]$ExePath,
+    [Parameter(Mandatory=$true)][string]$WorkingDirectory,
+    [Parameter(Mandatory=$true)][string]$LogPath
+)
+$ErrorActionPreference = 'Stop'
+function RLog([string]$Message) {
+    try { Add-Content -LiteralPath $LogPath -Encoding UTF8 -Value ('[{0}] [RESTART] {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'),$Message) } catch { }
+}
+$started = $false
+for ($attempt = 1; $attempt -le 15; $attempt++) {
+    try {
+        if (Test-Path -LiteralPath $ExePath) {
+            Start-Process -FilePath $ExePath -WorkingDirectory $WorkingDirectory -ErrorAction Stop | Out-Null
+            RLog ("SENETECH relaunched successfully on attempt $attempt: $ExePath")
+            $started = $true
+            break
+        }
+        RLog ("Executable not found on attempt $attempt: $ExePath")
+    } catch {
+        RLog ("Restart attempt $attempt failed: $($_.Exception.Message)")
+    }
+    Start-Sleep -Seconds 2
+}
+if (-not $started) {
+    RLog 'Automatic restart failed after 15 attempts.'
+    exit 1
+}
+Start-Sleep -Seconds 2
+try { Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue } catch { }
+exit 0
+'@
+        [IO.File]::WriteAllText($RestartScript,$restartHelper,(New-Object Text.UTF8Encoding($true)))
+        $restartLine = 'start "" /b powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $RestartScript + '" -ExePath "' + $exePath + '" -WorkingDirectory "' + $InstallDir + '" -LogPath "' + $LogPath + '"'
+    }
+
     $rollbackDir = Join-Path $InstallDir '_SENETECH\Rollback\previous'
     $rollbackMeta = Join-Path $rollbackDir 'rollback.json'
     $escapedCurrent = $CurrentVersion.Replace('"','')
     $escapedRemote = ([string]$manifest.version).Replace('"','')
     $cleanupText = @"
 @echo off
-ping 127.0.0.1 -n 5 >nul
+ping 127.0.0.1 -n 8 >nul
 rd /s /q "$TempRoot" 2>nul
 del /f /q "%~f0" >nul 2>&1
 "@
     Set-Content -Path $CleanupScript -Value $cleanupText -Encoding ASCII
+
     $applyScript = Join-Path $TempRoot 'APPLY-SENETECH-UPDATE.cmd'
     $applyText = @"
 @echo off
-setlocal
+setlocal EnableExtensions
 $waitBlock
 ping 127.0.0.1 -n 2 >nul
 if not exist "$InstallDir" mkdir "$InstallDir" >nul 2>&1
@@ -181,14 +223,30 @@ if exist "$BackupDir" (
   xcopy "$BackupDir\*" "$rollbackDir\" /E /I /Y /Q >nul
   >"$rollbackMeta" echo {"fromVersion":"$escapedCurrent","replacedBy":"$escapedRemote"}
 )
+set SENE_COPY_TRY=0
+:COPY_SENETECH
+set /a SENE_COPY_TRY+=1
 xcopy "$StageDir\*" "$InstallDir\" /E /I /Y /Q >nul
-if errorlevel 1 exit /b 1
+if not errorlevel 1 goto COPY_OK
+>>"$LogPath" echo [%date% %time%] [APPLY] Copy attempt %SENE_COPY_TRY% failed.
+if %SENE_COPY_TRY% GEQ 10 goto COPY_FAILED
+ping 127.0.0.1 -n 3 >nul
+goto COPY_SENETECH
+:COPY_FAILED
+>>"$LogPath" echo [%date% %time%] [APPLY] Update copy failed after 10 attempts.
+exit /b 1
+:COPY_OK
+if not exist "$exePath" (
+  >>"$LogPath" echo [%date% %time%] [APPLY] SENETECH-Setup.exe missing after copy.
+  exit /b 2
+)
+>>"$LogPath" echo [%date% %time%] [APPLY] Files copied successfully. Starting restart helper.
 $restartLine
 start "" /b "$CleanupScript"
 exit /b 0
 "@
     Set-Content -Path $applyScript -Value $applyText -Encoding ASCII
-    Write-UpdateLog 'Package ready. Backup created; applying update.'
+    Write-UpdateLog 'Package ready. Backup created; robust apply/restart helper prepared.'
     Start-Process -FilePath $applyScript -WindowStyle Hidden
     exit 10
 }
