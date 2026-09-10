@@ -51,6 +51,7 @@ try {
 
     $downloadUrl = [string]$manifest.downloadUrl
     if ([string]::IsNullOrWhiteSpace($downloadUrl)) { throw 'No downloadUrl is defined in version.json.' }
+    if (-not $downloadUrl.StartsWith('https://', [System.StringComparison]::OrdinalIgnoreCase)) { throw 'Update download URL must use HTTPS.' }
     if ([string]::IsNullOrWhiteSpace([string]$manifest.sha256)) { throw 'No SHA-256 is defined in version.json.' }
 
     Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
@@ -59,6 +60,15 @@ try {
 
     Write-Log "Downloading SENETECH $($manifest.version)"
     Invoke-WebRequest -Uri $downloadUrl -Headers $headers -OutFile $ZipPath -UseBasicParsing
+
+    if ($manifest.PSObject.Properties.Name -contains 'packageSize') {
+        $expectedSize = [int64]$manifest.packageSize
+        if ($expectedSize -gt 0) {
+            $actualSize = (Get-Item -LiteralPath $ZipPath).Length
+            if ($actualSize -ne $expectedSize) { throw "Package size mismatch: $actualSize bytes" }
+            Write-Log "Package size verification OK: $actualSize bytes."
+        }
+    }
 
     $actualHash = Get-Sha256 $ZipPath
     $expectedHash = ([string]$manifest.sha256).ToLowerInvariant()
