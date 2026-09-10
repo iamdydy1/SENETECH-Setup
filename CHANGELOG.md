@@ -1,5 +1,16 @@
 # Changelog SENETECH Setup
 
+## V1.4.3 — Test GitHub — 2026-09-10
+
+- Publication d'une **V1.4.3 de test** afin de valider le passage réel depuis V1.4.2.
+- La V1.4.2 détecte désormais V1.4.3 via `version.json`.
+- Réutilisation du package de base V1.4.2 déjà présent sur GitHub au lieu de dupliquer l'application entière.
+- Ajout d'un patch léger V1.4.3 d'environ 3 Ko.
+- Vérification SHA-256 du package de base et du patch avant installation.
+- Le patch met à jour la version de l'interface, du moteur, du manifeste et des métadonnées de l'EXE vers **1.4.3.0**.
+- Remplacement effectué uniquement après fermeture de SENETECH, puis redémarrage automatique.
+- Nettoyage des fichiers temporaires conservé après la mise à jour.
+
 ## V1.4.2 — 2026-09-10
 
 - Version stable actuelle définie sur **1.4.2.0**.
