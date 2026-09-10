@@ -164,7 +164,10 @@ try {
     }
     Write-InnoUpdateLog 'Installer size/SHA-256 verification OK.'
 
-    Wait-ForSenetechExit $WaitForProcessId
+    # Do not wait for the running SENETECH process here. The application may be
+    # synchronously waiting for this updater to finish. Inno Setup owns the
+    # shutdown with /CLOSEAPPLICATIONS, then performs the in-place replacement.
+    Write-InnoUpdateLog ("Launching Inno; running SENETECH pid hint={0}" -f $WaitForProcessId)
 
     $arguments = @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CLOSEAPPLICATIONS')
     if (Test-IsAdministrator) {
