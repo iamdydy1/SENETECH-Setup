@@ -37,6 +37,12 @@ function Get-Sha256([string]$Path) {
     } finally { $stream.Dispose() }
 }
 
+function Assert-Https([string]$Url, [string]$Label) {
+    if ([string]::IsNullOrWhiteSpace($Url) -or -not $Url.StartsWith('https://',[StringComparison]::OrdinalIgnoreCase)) {
+        throw "$Label doit utiliser HTTPS."
+    }
+}
+
 function Copy-SenetechRuntime([string]$Source, [string]$Destination) {
     New-Item -ItemType Directory -Force -Path $Destination | Out-Null
     foreach ($name in @('SENETECH-Setup.exe','VERSION.txt','LISEZ-MOI.txt','CHANGELOG.txt')) {
@@ -53,38 +59,83 @@ function Copy-SenetechRuntime([string]$Source, [string]$Destination) {
     }
 }
 
+function Get-SafeStagePath([string]$RelativePath) {
+    if ([string]::IsNullOrWhiteSpace($RelativePath)) { throw 'Chemin overlay vide.' }
+    $root = [IO.Path]::GetFullPath($StageDir).TrimEnd('\') + '\'
+    $candidate = [IO.Path]::GetFullPath((Join-Path $StageDir $RelativePath))
+    if (-not $candidate.StartsWith($root,[StringComparison]::OrdinalIgnoreCase)) { throw "Chemin overlay refuse : $RelativePath" }
+    return $candidate
+}
+
 try {
     try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch { }
     $headers = @{ 'User-Agent' = "SENETECH-Setup/$CurrentVersion" }
     Write-UpdateLog "Checking $ManifestUrl"
     $manifest = Invoke-RestMethod -Uri $ManifestUrl -Headers $headers -UseBasicParsing
     if (-not $manifest.enabled) { Write-UpdateLog 'Update service disabled.'; exit 0 }
+
     $local = New-Object System.Version($CurrentVersion)
     $remote = New-Object System.Version([string]$manifest.version)
     if ($remote -le $local) { Write-UpdateLog "Already current: $CurrentVersion"; exit 0 }
-    $downloadUrl = [string]$manifest.downloadUrl
-    if ([string]::IsNullOrWhiteSpace($downloadUrl)) { throw 'No downloadUrl is defined in version.json.' }
-    if ($downloadUrl -notmatch '^https://') { throw 'Only HTTPS update URLs are accepted.' }
-    if ([string]::IsNullOrWhiteSpace([string]$manifest.sha256)) { throw 'No SHA-256 is defined in version.json.' }
+
+    $baseUrl = if ($manifest.PSObject.Properties.Name -contains 'baseDownloadUrl' -and $manifest.baseDownloadUrl) { [string]$manifest.baseDownloadUrl } else { [string]$manifest.downloadUrl }
+    $baseHash = if ($manifest.PSObject.Properties.Name -contains 'baseSha256' -and $manifest.baseSha256) { [string]$manifest.baseSha256 } else { [string]$manifest.sha256 }
+    $baseSize = if ($manifest.PSObject.Properties.Name -contains 'basePackageSize' -and $manifest.basePackageSize) { [int64]$manifest.basePackageSize } elseif ($manifest.packageSize) { [int64]$manifest.packageSize } else { 0 }
+    Assert-Https $baseUrl 'URL du package'
+    if ([string]::IsNullOrWhiteSpace($baseHash)) { throw 'SHA-256 du package absent.' }
 
     Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item $CleanupScript -Force -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Path $StageDir,$BackupDir -Force | Out-Null
-    Write-UpdateLog "Downloading SENETECH $($manifest.version)"
-    Invoke-WebRequest -Uri $downloadUrl -Headers $headers -OutFile $ZipPath -UseBasicParsing
-    if ($manifest.packageSize) {
+
+    Write-UpdateLog "Downloading base package for SENETECH $($manifest.version)"
+    Invoke-WebRequest -Uri $baseUrl -Headers $headers -OutFile $ZipPath -UseBasicParsing
+    if ($baseSize -gt 0) {
         $actualSize = (Get-Item -LiteralPath $ZipPath).Length
-        if ([int64]$manifest.packageSize -ne [int64]$actualSize) { throw "Package size mismatch: $actualSize" }
+        if ($actualSize -ne $baseSize) { throw "Package size mismatch: $actualSize bytes" }
+        Write-UpdateLog "Base package size OK: $actualSize bytes."
     }
     $actualHash = Get-Sha256 $ZipPath
-    $expectedHash = ([string]$manifest.sha256).ToLowerInvariant()
-    if ($actualHash -ne $expectedHash) { throw "Package SHA-256 mismatch: $actualHash" }
-    Write-UpdateLog 'Package size and SHA-256 verification OK.'
+    if ($actualHash -ne $baseHash.ToLowerInvariant()) { throw "Package SHA-256 mismatch: $actualHash" }
+    Write-UpdateLog 'Base package SHA-256 verification OK.'
 
     if (Get-Command Expand-Archive -ErrorAction SilentlyContinue) { Expand-Archive -Path $ZipPath -DestinationPath $StageDir -Force }
     else { Add-Type -AssemblyName System.IO.Compression.FileSystem; [IO.Compression.ZipFile]::ExtractToDirectory($ZipPath, $StageDir) }
     Remove-Item $ZipPath -Force -ErrorAction SilentlyContinue
-    foreach ($relative in @('SENETECH-Setup.exe','_SENETECH\SENETECH-Setup.ps1','_SENETECH\SENETECH-Setup.manifest')) {
+
+    if ($manifest.PSObject.Properties.Name -contains 'patchUrl' -and $manifest.patchUrl) {
+        $patchUrl = [string]$manifest.patchUrl
+        Assert-Https $patchUrl 'URL du patch'
+        $patchPath = Join-Path $TempRoot 'SENETECH-DEVELOP-PATCH.ps1'
+        Invoke-WebRequest -Uri $patchUrl -Headers $headers -OutFile $patchPath -UseBasicParsing
+        if ($manifest.PSObject.Properties.Name -contains 'patchSha256' -and $manifest.patchSha256) {
+            $patchHash = Get-Sha256 $patchPath
+            if ($patchHash -ne ([string]$manifest.patchSha256).ToLowerInvariant()) { throw "Patch SHA-256 mismatch: $patchHash" }
+        }
+        Write-UpdateLog 'Applying SENETECH development patch.'
+        $patchProcess = Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"'+$patchPath+'"'),'-StageDir',('"'+$StageDir+'"')) -PassThru -WindowStyle Hidden -Wait
+        if ($patchProcess.ExitCode -ne 0) { throw "Development patch failed with code $($patchProcess.ExitCode)." }
+    }
+
+    if ($manifest.PSObject.Properties.Name -contains 'overlayFiles' -and $manifest.overlayFiles) {
+        foreach ($overlay in @($manifest.overlayFiles)) {
+            $url = [string]$overlay.url
+            $relative = [string]$overlay.path
+            Assert-Https $url "Overlay $relative"
+            $target = Get-SafeStagePath $relative
+            New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
+            Invoke-WebRequest -Uri $url -Headers $headers -OutFile $target -UseBasicParsing
+            if ($overlay.PSObject.Properties.Name -contains 'sha256' -and $overlay.sha256) {
+                $overlayHash = Get-Sha256 $target
+                if ($overlayHash -ne ([string]$overlay.sha256).ToLowerInvariant()) { throw "Overlay SHA-256 mismatch: $relative" }
+            }
+            Write-UpdateLog "Overlay installed: $relative"
+        }
+    }
+
+    $required = @('SENETECH-Setup.exe','_SENETECH\SENETECH-Setup.ps1','_SENETECH\SENETECH-Setup.manifest')
+    if ($manifest.PSObject.Properties.Name -contains 'requiredFiles' -and $manifest.requiredFiles) { $required += @($manifest.requiredFiles | ForEach-Object { [string]$_ }) }
+    foreach ($relative in ($required | Select-Object -Unique)) {
         if (-not (Test-Path -LiteralPath (Join-Path $StageDir $relative))) { throw "Incomplete SENETECH package: missing $relative" }
     }
 
