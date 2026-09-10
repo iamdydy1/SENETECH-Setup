@@ -4,7 +4,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# Apply the complete V1.6.0.17 build first.
+# Apply the complete build 17 patch first.
 $previousPatch = Join-Path $env:TEMP 'SENETECH-PATCH-1.6.0-v19.ps1'
 $previousPatchUrl = 'https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v19.ps1'
 try {
@@ -20,26 +20,12 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $enginePath = Join-Path $StageDir '_SENETECH\SENETECH-Setup.ps1'
 $engineText = [IO.File]::ReadAllText($enginePath,$utf8Bom)
 
-# Load Reporter after all validation/safety implementations so its wrappers
-# observe the final active functions.
 $needle = ". `$cacheSafetyModule`r`nInitialize-SenetechV16Features"
 if (-not $engineText.Contains($needle)) { $needle = ". `$cacheSafetyModule`nInitialize-SenetechV16Features" }
 if (-not $engineText.Contains($needle)) { throw 'Patch V1.6.0.18 impossible : point de chargement CacheSafety introuvable.' }
-$replacement = ". `$cacheSafetyModule`r`n`$reporterModule = Join-Path `$script:EngineDir 'Modules\Senetech.Reporter.ps1'`r`nif (-not (Test-Path -LiteralPath `$reporterModule)) { throw 'Module SENETECH Reporter V1.6.0.18 introuvable.' }`r`n. `$reporterModule`r`nInitialize-SenetechV16Features"
+
+$replacement = ". `$cacheSafetyModule`r`n`$reporterModule = Join-Path `$script:EngineDir 'Modules\Senetech.Reporter.ps1'`r`nif (-not (Test-Path -LiteralPath `$reporterModule)) { throw 'Module SENETECH Reporter V1.6.0.18 introuvable.' }`r`n. `$reporterModule`r`nInitialize-SenetechV16Features`r`nInitialize-SenetechReporter"
 $engineText = $engineText.Replace($needle,$replacement)
-
-# Initialize the Reporter after Delivery so sections remain in visual order:
-# 6. Outils technicien, 7. Livraison/Vente, 8. Rapports techniques.
-$initNeedle = "Initialize-SenetechV16Features`r`nInitialize-SenetechDeliveryFeatures"
-if (-not $engineText.Contains($initNeedle)) { $initNeedle = "Initialize-SenetechV16Features`nInitialize-SenetechDeliveryFeatures" }
-if (-not $engineText.Contains($initNeedle)) { throw 'Patch V1.6.0.18 impossible : initialisation Livraison introuvable.' }
-$engineText = $engineText.Replace($initNeedle,"Initialize-SenetechV16Features`r`nInitialize-SenetechDeliveryFeatures`r`nInitialize-SenetechReporter")
-
-# The legacy updater refuses a lower Stable version because it only compares
-# semantic versions. Use a channel-aware wrapper so a deliberate DEV -> Stable
-# switch can restore the official Stable package with the usual SHA-256/backup.
-if (-not $engineText.Contains("'UPDATE-SENETECH.ps1'")) { throw 'Patch V1.6.0.18 impossible : updater principal introuvable.' }
-$engineText = $engineText.Replace("'UPDATE-SENETECH.ps1'","'UPDATE-SENETECH-CHANNEL.ps1'")
 
 $engineText = $engineText.Replace("`$script:AppVersion = '1.6.0.17'", "`$script:AppVersion = '1.6.0.18'")
 $engineText = $engineText.Replace("`$script:DisplayVersion = '1.6.0 DEV - build 17'", "`$script:DisplayVersion = '1.6.0 DEV - build 18'")
@@ -63,10 +49,7 @@ Canal : Developpeur
 Branche : develop
 Windows : 10 / 11
 Mode : Portable + Installe
-Mises a jour : GitHub + SHA-256 + rollback
-Nouveau : SENETECH Reporter via Cloudflare avec consentement
-Nouveau : succes, avertissements, erreurs et file d attente de rapports
-Correctif : passage Develop vers Stable reel avec sauvegarde avant remplacement
+Nouveau : SENETECH Reporter via Cloudflare avec consentement, succes, avertissements et erreurs
 '@
 
-Write-Output 'SENETECH V1.6.0 DEV build 18 - Reporter et changement de canal appliques.'
+Write-Output 'SENETECH V1.6.0 DEV build 18 - Reporter Cloudflare integre.'
