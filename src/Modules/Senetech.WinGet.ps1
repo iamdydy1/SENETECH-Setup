@@ -3,20 +3,30 @@
 
 $script:SenetechWingetBootstrapAttempted = $false
 
-function Find-SenetechWingetCommand {
-    $cmd = Get-Command winget.exe -ErrorAction SilentlyContinue
-    if ($cmd -and $cmd.Source -and (Test-Path -LiteralPath $cmd.Source)) { return $cmd }
-
+function Get-SenetechAppInstallerPackages {
     $packages = @()
     try { $packages += @(Get-AppxPackage -Name Microsoft.DesktopAppInstaller -ErrorAction SilentlyContinue) } catch { }
     try { $packages += @(Get-AppxPackage -AllUsers -Name Microsoft.DesktopAppInstaller -ErrorAction SilentlyContinue) } catch { }
+    return @($packages | Where-Object { $_ -and $_.InstallLocation } | Sort-Object Version -Descending -Unique)
+}
 
-    foreach ($pkg in @($packages | Sort-Object Version -Descending)) {
-        if (-not $pkg.InstallLocation) { continue }
+function Find-SenetechWingetCommand {
+    $cmd = Get-Command winget.exe -ErrorAction SilentlyContinue
+    if ($cmd -and $cmd.Source -and (Test-Path -LiteralPath $cmd.Source)) {
+        return [pscustomobject]@{ Source=[string]$cmd.Source; Name='winget.exe'; Version='' }
+    }
+
+    foreach ($pkg in @(Get-SenetechAppInstallerPackages)) {
         $candidate = Join-Path ([string]$pkg.InstallLocation) 'winget.exe'
         if (Test-Path -LiteralPath $candidate) {
             return [pscustomobject]@{ Source=$candidate; Name='winget.exe'; Version=[string]$pkg.Version }
         }
+        try {
+            $nested = Get-ChildItem -LiteralPath ([string]$pkg.InstallLocation) -Filter 'winget.exe' -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($nested -and (Test-Path -LiteralPath $nested.FullName)) {
+                return [pscustomobject]@{ Source=[string]$nested.FullName; Name='winget.exe'; Version=[string]$pkg.Version }
+            }
+        } catch { }
     }
 
     $aliasPath = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\winget.exe'
@@ -26,9 +36,47 @@ function Find-SenetechWingetCommand {
     return $null
 }
 
+function Register-SenetechExistingAppInstaller {
+    $packages = @(Get-SenetechAppInstallerPackages)
+    if ($packages.Count -eq 0) { return $null }
+
+    $pkg = $packages | Select-Object -First 1
+    Write-Log ('App Installer deja present : version {0}. Recherche de WinGet dans {1}' -f $pkg.Version,$pkg.InstallLocation) 'INFO'
+
+    $winget = Find-SenetechWingetCommand
+    if ($winget) {
+        Write-Log ('WinGet retrouve dans App Installer existant : {0}' -f $winget.Source) 'OK'
+        return $winget
+    }
+
+    $manifest = Join-Path ([string]$pkg.InstallLocation) 'AppxManifest.xml'
+    if (-not (Test-Path -LiteralPath $manifest)) {
+        Write-Log 'App Installer est present mais son AppxManifest.xml est introuvable.' 'ATTENTION'
+        return $null
+    }
+
+    try {
+        Write-Log 'Reenregistrement du package App Installer deja installe pour le compte technicien...' 'INFO'
+        Add-AppxPackage -DisableDevelopmentMode -Register $manifest -ForceApplicationShutdown -ErrorAction Stop
+        Start-Sleep -Seconds 2
+        $winget = Find-SenetechWingetCommand
+        if ($winget) {
+            Write-Log ('WinGet reactive sans telecharger une version plus ancienne : {0}' -f $winget.Source) 'OK'
+            Add-SenetechHistory 'Reenregistrement App Installer' 'OK' ([string]$pkg.Version)
+            return $winget
+        }
+    } catch {
+        Write-Log ('Reenregistrement App Installer non concluant : {0}' -f $_.Exception.Message) 'ATTENTION'
+    }
+    return $null
+}
+
 function Install-SenetechWinget {
     $existing = Find-SenetechWingetCommand
     if ($existing) { return $existing }
+
+    $registered = Register-SenetechExistingAppInstaller
+    if ($registered) { return $registered }
 
     if ($script:SenetechWingetBootstrapAttempted) { return $null }
     $script:SenetechWingetBootstrapAttempted = $true
@@ -38,7 +86,7 @@ function Install-SenetechWinget {
         return $null
     }
 
-    Write-Log 'WinGet absent : installation automatique de Windows Package Manager...' 'INFO'
+    Write-Log 'WinGet reellement absent : installation/reparation de Windows Package Manager...' 'INFO'
     Set-Progress 18 'Installation de WinGet'
     Add-SenetechHistory 'Bootstrap WinGet' 'INFO' 'Debut'
 
@@ -73,12 +121,20 @@ function Install-SenetechWinget {
         }
 
         Import-Module Microsoft.WinGet.Client -Force -ErrorAction Stop
-        Write-Log 'Installation / reparation du package App Installer et WinGet...' 'INFO'
-        Repair-WinGetPackageManager -AllUsers -Force -Latest -ErrorAction Stop | Out-Null
+        Write-Log 'Reparation du package App Installer / WinGet...' 'INFO'
+        try {
+            Repair-WinGetPackageManager -AllUsers -Force -Latest -ErrorAction Stop | Out-Null
+        } catch {
+            Write-Log ('Reparation Microsoft retournee : {0}' -f $_.Exception.Message) 'ATTENTION'
+            $reuse = Register-SenetechExistingAppInstaller
+            if ($reuse) { return $reuse }
+            throw
+        }
         Start-Sleep -Seconds 2
 
         $winget = Find-SenetechWingetCommand
-        if (-not $winget) { throw 'WinGet reste introuvable apres la reparation officielle.' }
+        if (-not $winget) { $winget = Register-SenetechExistingAppInstaller }
+        if (-not $winget) { throw 'WinGet reste introuvable apres la reparation.' }
 
         Write-Log ('WinGet est maintenant disponible : {0}' -f $winget.Source) 'OK'
         Add-SenetechHistory 'Bootstrap WinGet' 'OK' $winget.Source
