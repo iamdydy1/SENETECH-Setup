@@ -1,8 +1,8 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.6.0.14",
-  "displayVersion": "1.6.0 DEV - build 14",
+  "version": "1.6.0.15",
+  "displayVersion": "1.6.0 DEV - build 15",
   "enabled": true,
   "mandatory": false,
   "downloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
@@ -11,7 +11,7 @@
   "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "basePackageSize": 109004,
   "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
-  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v16.ps1",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v17.ps1",
   "patchSha256": "",
   "overlayFiles": [
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Catalog.ps1","path":"_SENETECH/Modules/Senetech.Catalog.ps1"},
@@ -47,19 +47,16 @@
     "_SENETECH/Catalog/profiles.json"
   ],
   "releaseNotes": [
-    "SENETECH V1.6.0 DEV - build 14",
-    "Grande vérification du workflow avant future promotion Stable",
-    "Sauvegarde d'état obligatoire avant toute préparation avec empreinte SHA-256",
-    "Préflight automatique : administrateur, catalogue, espace disque, WinGet/cache et moteur Windows Update",
-    "Application déjà installée détectée avant téléchargement inutile",
-    "Après chaque installation, l'application doit réellement être retrouvée avant d'être marquée OK",
-    "Un code installateur 0 seul ne suffit plus à déclarer une installation réussie",
-    "Cache USB contrôlé par taille et SHA-256 ; ancien cache gardé jusqu'à validation du nouveau",
-    "WinGet bootstrap utilisé aussi par le workflow principal d'installation des applications",
-    "Windows Update remonte maintenant les résultats Failed/Aborted comme échecs",
-    "Contrôle final global avant annonce de réussite",
-    "Un PC avec un échec bloquant n'est plus annoncé comme validé pour livraison",
-    "Checklist complète de validation avant Stable ajoutée au dépôt",
-    "Correctifs orthographe, DisplayName, responsive et anti-crash maintenus"
+    "SENETECH V1.6.0 DEV - build 15",
+    "Correctif critique : SENETECH ne démarrait plus depuis la build 13 sur certains postes",
+    "Cause corrigée : doublons de clés sensibles à la casse dans la table des accents PowerShell",
+    "Le module français reste ASCII-safe pour Windows PowerShell 5.1",
+    "La grande validation build 14 est conservée",
+    "Sauvegarde d'état obligatoire avant préparation avec SHA-256",
+    "Détection des applications déjà installées avant téléchargement",
+    "Vérification réelle après chaque installation avant statut OK",
+    "Cache USB contrôlé par taille et SHA-256 avec conservation de l'ancien cache tant que le nouveau n'est pas validé",
+    "Contrôle final global avant validation pour livraison",
+    "Stable V1.5.1 inchangée"
   ]
 }
