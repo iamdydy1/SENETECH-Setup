@@ -1,15 +1,16 @@
 SENETECH Setup
-Version 1.6.0.25
-Affichage : 1.6.0 DEV - build 25 RECOVERY
+Version 1.6.0.26
+Affichage : 1.6.0 DEV - build 26 DIAGNOSTIC
 Canal : Développeur
 Branche : develop
 Windows : 10 / 11
 Mode : Portable + Installé
-Base moteur : snapshot exact V1.6.0.17 commit 7dc64fd
-Objectif : restaurer un SENETECH qui s ouvre réellement après la mise à jour
-Reporter : désactivé dans cette build de récupération
-Instrumentation startup : désactivée dans cette build de récupération
-Updater : V23 durci conservé pour les mises à jour suivantes
-Recovery externe : SENETECH-RECOVERY.ps1 disponible si l EXE actuel ne démarre plus
-Sécurité : base Stable V1.5.1 et patch recovery vérifiés par SHA-256
+Base moteur : Recovery / snapshot exact V1.6.0.17 commit 7dc64fd
+Moteur normal : inchangé par rapport à la Recovery, hors numéro de build
+Diagnostic Developer : SENETECH-DEV-DIAGNOSTIC.cmd
+Logs Developer : C:\ProgramData\SENETECH\Logs\Developer
+Bundle : ZIP par session avec trace, erreurs PowerShell, stack trace, événements Windows et inventaire runtime
+Reporter : résumés distants uniquement avec consentement explicite
+Recovery externe : SENETECH-RECOVERY.ps1 conservé
+Updater : V23 durci conservé
 Stable : V1.5.1 sur main inchangée
