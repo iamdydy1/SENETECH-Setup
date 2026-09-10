@@ -14,7 +14,7 @@ echo   SENETECH SETUP - TELECHARGEMENT DE LA VERSION STABLE
 echo ============================================================
 echo.
 echo Destination : %TARGET%
-echo Version cible : V1.5.1 Stable
+echo Canal : Stable - derniere version disponible
 echo.
 
 if not exist "%TARGET%" mkdir "%TARGET%" >nul 2>&1
@@ -23,8 +23,8 @@ if errorlevel 1 goto :error_folder
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri '%UPDATER_URL%' -OutFile '%UPDATER%'; exit 0 } catch { Write-Host $_.Exception.Message; exit 1 }"
 if errorlevel 1 goto :error_download
 
-echo [OK] Service de mise a jour SENETECH recupere.
-echo [INFO] Telechargement et verification de la version Stable...
+echo [OK] Service SENETECH recupere.
+echo [INFO] Telechargement et verification de la derniere version Stable...
 echo.
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UPDATER%" -CurrentVersion "0.0.0.0" -InstallDir "%TARGET%" -UpdateChannel "stable"
@@ -42,8 +42,8 @@ exit /b 1
 
 :success
 echo.
-echo [OK] SENETECH V1.5.1 Stable est en cours d'installation.
-echo L'application va se lancer automatiquement.
+echo [OK] La derniere version Stable de SENETECH est en cours de preparation.
+echo SENETECH va se lancer automatiquement.
 echo.
 timeout /t 3 /nobreak >nul
 exit /b 0
@@ -54,7 +54,7 @@ pause
 exit /b 1
 
 :error_download
-echo [ERREUR] Impossible de contacter le service SENETECH sur GitHub.
+echo [ERREUR] Impossible de contacter le service SENETECH.
 echo Verifiez la connexion Internet puis recommencez.
 pause
 exit /b 1
