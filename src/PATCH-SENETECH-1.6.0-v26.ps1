@@ -12,18 +12,25 @@ $manifestPath = Join-Path $StageDir '_SENETECH\SENETECH-Setup.manifest'
 if (-not (Test-Path -LiteralPath $enginePath)) { throw "Moteur SENETECH introuvable : $enginePath" }
 $engineText = [IO.File]::ReadAllText($enginePath,$utf8Bom)
 
-# Some test machines report build 18 in the wrapper/window while the embedded
-# PowerShell engine still contains build 17 markers. Accept that hybrid state.
+# Some machines report build 18 in the wrapper/window while the embedded
+# PowerShell engine still contains build 17 markers. Accept builds 17..22 and
+# repair every mixed marker instead of trusting a single displayed version.
 $sourceBuild = $null
-$appVersionMatch = [regex]::Match($engineText, "\$script:AppVersion\s*=\s*'1\.6\.0\.(\d+)'")
-if ($appVersionMatch.Success) {
-    $sourceBuild = [int]$appVersionMatch.Groups[1].Value
+foreach ($candidate in 17..22) {
+    if ($engineText.Contains("`$script:AppVersion = '1.6.0.$candidate'")) {
+        $sourceBuild = [int]$candidate
+        break
+    }
 }
-if ($null -eq $sourceBuild -or $sourceBuild -lt 17 -or $sourceBuild -gt 22) {
-    $displayMatch = [regex]::Match($engineText, '1\.6\.0 DEV\s*-\s*build\s*(\d+)', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
-    if ($displayMatch.Success) { $sourceBuild = [int]$displayMatch.Groups[1].Value }
+if ($null -eq $sourceBuild) {
+    foreach ($candidate in 17..22) {
+        if ($engineText.Contains("1.6.0 DEV - build $candidate") -or $engineText.Contains("1.6.0 DEV - BUILD $candidate")) {
+            $sourceBuild = [int]$candidate
+            break
+        }
+    }
 }
-if ($null -eq $sourceBuild -or $sourceBuild -lt 17 -or $sourceBuild -gt 22) {
+if ($null -eq $sourceBuild) {
     throw 'Patch incremental V1.6.0.22 refuse : moteur source non reconnu comme V1.6 build 17 a 22.'
 }
 
@@ -66,13 +73,20 @@ Initialize-SenetechReporter
     $engineText = $engineText.Replace($needle,$replacement.TrimEnd("`r","`n"))
 }
 
-# Normalize every visible/internal version marker. Regex is intentional here:
-# hybrid builds can contain build 17 in one location and build 18 in another.
-$engineText = [regex]::Replace($engineText, "\$script:AppVersion\s*=\s*'1\.6\.0\.\d+'", "`$script:AppVersion = '1.6.0.22'", 1)
-$engineText = [regex]::Replace($engineText, "\$script:DisplayVersion\s*=\s*'1\.6\.0 DEV(?:\s*-\s*build\s*\d+)?'", "`$script:DisplayVersion = '1.6.0 DEV - build 22'", 1, [System.TimeSpan]::FromSeconds(2))
-$engineText = [regex]::Replace($engineText, 'Title="SENETECH Setup V1\.6\.0 DEV(?:\s*-\s*build\s*\d+)?"', 'Title="SENETECH Setup V1.6.0 DEV - build 22"')
-$engineText = [regex]::Replace($engineText, 'VERSION 1\.6\.0 DEV(?:\s*-\s*BUILD\s*\d+)?" Foreground', 'VERSION 1.6.0 DEV - BUILD 22" Foreground', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
-$engineText = [regex]::Replace($engineText, 'SENETECH Setup V1\.6\.0 DEV(?:\s*-\s*build\s*\d+)? demarre', 'SENETECH Setup V1.6.0 DEV - build 22 demarre', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+# Normalize ALL mixed version markers. This intentionally loops through every
+# possible source build so title/header/engine cannot disagree after the update.
+foreach ($candidate in 17..22) {
+    $engineText = $engineText.Replace("`$script:AppVersion = '1.6.0.$candidate'", "`$script:AppVersion = '1.6.0.22'")
+    $engineText = $engineText.Replace("`$script:DisplayVersion = '1.6.0 DEV - build $candidate'", "`$script:DisplayVersion = '1.6.0 DEV - build 22'")
+    $engineText = $engineText.Replace("Title=`"SENETECH Setup V1.6.0 DEV - build $candidate`"", 'Title="SENETECH Setup V1.6.0 DEV - build 22"')
+    $engineText = $engineText.Replace("VERSION 1.6.0 DEV - BUILD $candidate`" Foreground", 'VERSION 1.6.0 DEV - BUILD 22" Foreground')
+    $engineText = $engineText.Replace("SENETECH Setup V1.6.0 DEV - build $candidate demarre", 'SENETECH Setup V1.6.0 DEV - build 22 demarre')
+}
+# Also normalize the original no-build V1.6 labels if one survived an old patch.
+$engineText = $engineText.Replace("`$script:DisplayVersion = '1.6.0 DEV'", "`$script:DisplayVersion = '1.6.0 DEV - build 22'")
+$engineText = $engineText.Replace('Title="SENETECH Setup V1.6.0 DEV"','Title="SENETECH Setup V1.6.0 DEV - build 22"')
+$engineText = $engineText.Replace('VERSION 1.6.0 DEV" Foreground','VERSION 1.6.0 DEV - BUILD 22" Foreground')
+$engineText = $engineText.Replace('SENETECH Setup V1.6.0 DEV demarre','SENETECH Setup V1.6.0 DEV - build 22 demarre')
 
 if (-not $engineText.Contains("`$script:AppVersion = '1.6.0.22'")) {
     throw 'Patch incremental : normalisation AppVersion impossible.'
@@ -81,7 +95,9 @@ if (-not $engineText.Contains("`$script:AppVersion = '1.6.0.22'")) {
 
 if (Test-Path -LiteralPath $manifestPath) {
     $manifestText = [IO.File]::ReadAllText($manifestPath,$utf8NoBom)
-    $manifestText = [regex]::Replace($manifestText,'version="1\.6\.0\.\d+"','version="1.6.0.22"',1)
+    foreach ($candidate in 17..22) {
+        $manifestText = $manifestText.Replace("version=`"1.6.0.$candidate`"",'version="1.6.0.22"')
+    }
     [IO.File]::WriteAllText($manifestPath,$manifestText,$utf8NoBom)
 }
 
