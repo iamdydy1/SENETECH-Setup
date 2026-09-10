@@ -2,6 +2,19 @@
 
 > Ce fichier suit toutes les builds du canal `develop`, y compris les tests, régressions et correctifs. Une modification DEV n'est pas considérée Stable tant qu'elle n'a pas été validée puis promue explicitement sur `main`.
 
+## V1.6.0.27 DEV — 2026-09-10
+
+- Correction de la fenêtre XULRunner « This profile was last used with a newer version » pendant la préparation du PC.
+- Firefox est maintenant détecté par le registre, WinGet, son processus actif et ses emplacements d'installation standards.
+- Une installation Firefox présente mais mal enregistrée n'est plus remplacée inutilement.
+- La mise à jour de Firefox est automatiquement reportée lorsque le navigateur est ouvert.
+- Aucun profil Firefox, favori, historique ou mot de passe n'est supprimé ou modifié.
+- La source officielle `winget` est imposée pour les installations et les mises à jour d'applications.
+- La validation après installation attend désormais l'enregistrement réel de l'application par Windows afin d'éviter les faux échecs.
+- Les correctifs Firefox sont livrés dans les modules Validation, WinGet et Technicien avec empreintes SHA-256.
+- Les outils de diagnostic du build 26 sont conservés.
+- Stable V1.5.1 inchangée.
+
 ## V1.6.0.18 DEV — 2026-09-10
 
 - Ajout de **SENETECH Reporter** pour le suivi technique à distance.
