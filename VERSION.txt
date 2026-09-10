@@ -1,9 +1,9 @@
 SENETECH Setup
-Version 1.5.1.0
+Version 1.6.0.0
+Affichage : 1.6.0 DEV
 Canal : Developpeur
 Branche : develop
-Base : Stable 1.5.1.0
+Base Stable : 1.5.1.0
 Windows : 10 / 11
 Mode : Portable + Installe
-Distribution de base : GitHub Release 1.5.1
-Integrite : SHA-256
+Mises a jour : GitHub + SHA-256 + overlays + rollback
