@@ -1,5 +1,16 @@
 # Changelog SENETECH Setup — Develop
 
+## V1.6.0.9 DEV — 2026-09-10
+
+- Correction spécifique de la fenêtre **FINALISER POUR LA VENTE** sur les petits écrans et laptops.
+- La fenêtre reprend désormais les métriques résolution/DPI du module d'affichage principal.
+- Contraste renforcé pour les textes, options, avertissements et informations du profil technicien.
+- Taille de police minimale augmentée pour éviter les textes trop petits ou gris illisibles.
+- Boutons agrandis et zone de confirmation `VENTE` rendue plus visible.
+- Scroll vertical automatique si la hauteur de l'écran ne permet pas d'afficher tout le contenu.
+- La fenêtre **Voir les applications détectées** est également rendue responsive.
+- La Stable V1.5.1 reste inchangée.
+
 ## V1.6.0.8 DEV — 2026-09-10
 
 - Ajout du module `Senetech.Display.ps1` pour adapter automatiquement la fenêtre à la résolution et au DPI Windows.
