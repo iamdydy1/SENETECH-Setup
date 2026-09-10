@@ -73,6 +73,7 @@ Type: files; Name: "{app}\SENETECH-DEV-DIAGNOSTIC.cmd"
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "SENETECH-INSTALLED.flag"; DestDir: "{app}"; DestName: "SENETECH-INSTALLED.flag"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\SENETECH Setup"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"
