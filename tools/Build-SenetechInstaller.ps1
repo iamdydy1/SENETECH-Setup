@@ -24,13 +24,53 @@ foreach ($required in @('SENETECH-Setup.exe','VERSION.txt','_SENETECH\SENETECH-S
     if (-not (Test-Path -LiteralPath (Join-Path $SourceDir $required))) { throw "Runtime incomplet : $required" }
 }
 
-$isccCandidates = @(
-    (Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'),
-    (Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe'),
-    'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
-) | Where-Object { $_ -and (Test-Path -LiteralPath $_) }
-$iscc = $isccCandidates | Select-Object -First 1
-if (-not $iscc) { throw 'ISCC.exe (Inno Setup 6) introuvable.' }
+function Find-InnoCompiler {
+    $candidates = @()
+
+    try {
+        $cmd = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+        if ($cmd -and $cmd.Source) { $candidates += [string]$cmd.Source }
+    } catch { }
+
+    foreach ($base in @(${env:ProgramFiles(x86)}, $env:ProgramFiles, $env:LOCALAPPDATA)) {
+        if ([string]::IsNullOrWhiteSpace([string]$base)) { continue }
+        foreach ($folder in @(
+            'Inno Setup 7\ISCC.exe',
+            'Inno Setup 6\ISCC.exe',
+            'Programs\Inno Setup 7\ISCC.exe',
+            'Programs\Inno Setup 6\ISCC.exe'
+        )) {
+            try { $candidates += (Join-Path $base $folder) } catch { }
+        }
+    }
+
+    foreach ($regPath in @(
+        'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+        'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
+        'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'
+    )) {
+        try {
+            foreach ($entry in @(Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue | Where-Object {
+                [string]$_.DisplayName -like 'Inno Setup*'
+            })) {
+                if ($entry.InstallLocation) {
+                    $candidates += (Join-Path ([string]$entry.InstallLocation) 'ISCC.exe')
+                }
+            }
+        } catch { }
+    }
+
+    return @($candidates |
+        Where-Object { $_ -and (Test-Path -LiteralPath $_) } |
+        Select-Object -Unique |
+        Select-Object -First 1)
+}
+
+$iscc = Find-InnoCompiler
+if (-not $iscc) {
+    throw 'ISCC.exe introuvable. Installez Inno Setup 7 ou 6 puis relancez le build.'
+}
+Write-Host "[SENETECH] Inno Setup compiler : $iscc"
 
 Remove-Item -LiteralPath $OutputDir -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
