@@ -1,5 +1,21 @@
 # Changelog SENETECH Setup — Develop
 
+## V1.6.0.14 DEV — 2026-09-10
+
+- Ajout d'une **grande vérification automatique du workflow** avant la future promotion en Stable.
+- Une **sauvegarde d'état obligatoire** est créée avant chaque préparation dans `C:\ProgramData\SENETECH\Backups`, avec empreinte SHA-256. Si cette sauvegarde ne peut pas être créée, la préparation s'arrête avant les modifications.
+- La sauvegarde d'état conserve notamment la liste des applications présentes, des éléments de démarrage, des pilotes signés, du profil choisi et des applications demandées.
+- Ajout d'un **préflight automatique** : privilèges administrateur, cohérence du catalogue et des profils, espace disque, disponibilité de WinGet ou du cache USB et présence du moteur Windows Update.
+- L'installation principale utilise maintenant le bootstrap WinGet de SENETECH sur les Windows fraîchement installés.
+- Avant une installation, SENETECH vérifie si l'application est déjà présente et évite un téléchargement inutile lorsqu'elle est détectée.
+- Après chaque installation, SENETECH revérifie réellement l'application. Un simple code de sortie `0` ne suffit plus à déclarer l'installation réussie.
+- Le cache USB est renforcé avec taille + SHA-256. L'ancien cache est conservé jusqu'à validation du nouveau téléchargement ; en cas d'échec, l'ancien installateur reste disponible.
+- Le moteur Windows Update interprète désormais les résultats Microsoft : **Failed/Aborted** sont bloquants et **SucceededWithErrors** est signalé comme avertissement.
+- Ajout d'un **contrôle final global** : applications demandées, sauvegarde d'état, périphériques en erreur, stockage, activation Windows et redémarrage requis.
+- Un PC comportant un échec bloquant n'est plus annoncé comme « validé » ; les points à corriger sont affichés et journalisés.
+- Ajout de `RELEASE-CHECKLIST.md` pour valider Windows 10, Windows 11, Portable, Installé, cache hors ligne, rollback et Livraison/OOBE avant toute promotion vers `main`.
+- La Stable V1.5.1 reste inchangée.
+
 ## V1.6.0.13 DEV — 2026-09-10
 
 - Révision générale de l'orthographe, des accents, des accords et de la ponctuation dans les nouveaux écrans V1.6.
