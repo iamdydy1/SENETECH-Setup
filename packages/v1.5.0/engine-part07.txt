@@ -1,0 +1,137 @@
+        $source = if ($useWinget) { 'Internet / WinGet' } else { 'Cache USB' }
+        $resultLocale = if ($useWinget) { $locale } else { Get-CachedInstallerLocale $app }
+        Write-Log ("Installation de {0} ({1}/{2}) depuis {3}..." -f $app.Name, $index, $apps.Count, $source)
+        $code = -1
+        try {
+            if ($useWinget) {
+                $arguments = @('install','--id',$app.Id,'--exact','--silent',
+                  '--locale',$locale,'--accept-package-agreements','--accept-source-agreements','--disable-interactivity')
+                $code = Invoke-ProcessVisible -FilePath $winget.Source -Arguments $arguments
+                if ($code -ne 0) {
+                    Write-Log ("Installation {0} indisponible en {1}, nouvel essai dans la langue proposee par l'editeur." -f $app.Name, $locale) 'ATTENTION'
+                    $resultLocale = 'Editeur / automatique'
+                    $arguments = @('install','--id',$app.Id,'--exact','--silent',
+                      '--accept-package-agreements','--accept-source-agreements','--disable-interactivity')
+                    $code = Invoke-ProcessVisible -FilePath $winget.Source -Arguments $arguments
+                }
+            } else {
+                $installer = Get-CachedInstaller $app
+                if ($null -eq $installer) {
+                    Write-Log ("Aucun installateur hors ligne trouve pour {0}." -f $app.Name) 'ATTENTION'
+                    $results += [pscustomobject]@{ Name = $app.Name; Id = $app.Id; Status = 'ABSENT DU CACHE'; Version = '-'; ExitCode = '-'; Source = $source; Locale = $resultLocale }
+                    continue
+                }
+                $code = Invoke-OfflineInstaller $app $installer
+            }
+        } catch {
+            Write-Log ("Erreur pendant l'installation de {0} : {1}" -f $app.Name, $_.Exception.Message) 'ATTENTION'
+        }
+        $version = Get-InstalledAppVersion $app.Registry
+        if ($code -eq 0 -or $version -ne '-') {
+            Write-Log ("{0} installe ou deja a jour. Version : {1}" -f $app.Name, $version) 'OK'
+            $results += [pscustomobject]@{ Name = $app.Name; Id = $app.Id; Status = 'OK'; Version = $version; ExitCode = $code; Source = $source; Locale = $resultLocale }
+        } else {
+            Write-Log ("Echec ou installation non applicable pour {0} (code {1})." -f $app.Name, $code) 'ATTENTION'
+            $results += [pscustomobject]@{ Name = $app.Name; Id = $app.Id; Status = 'ECHEC'; Version = '-'; ExitCode = $code; Source = $source; Locale = $resultLocale }
+        }
+    }
+    return @($results)
+}
+
+function Install-OfflineDrivers {
+    $infFiles = @(Get-ChildItem -LiteralPath $script:OfflineDriverDir -Filter '*.inf' -File -Recurse -ErrorAction SilentlyContinue)
+    if ($infFiles.Count -eq 0) {
+        Write-Log 'Aucun pilote INF hors ligne disponible sur la cle.' 'ATTENTION'
+        $script:OperationNotes += 'Pilotes hors ligne non installes : aucun fichier INF disponible.'
+        return
+    }
+    Write-Log ("Installation des pilotes hors ligne : {0} fichier(s) INF disponible(s)." -f $infFiles.Count)
+    $pattern = Join-Path $script:OfflineDriverDir '*.inf'
+    $code = Invoke-ProcessVisible -FilePath 'pnputil.exe' -Arguments @('/add-driver',('"' + $pattern + '"'),'/subdirs','/install')
+    if ($code -eq 0) { Write-Log 'Pilotes hors ligne compatibles installes.' 'OK' }
+    else { Write-Log ("PnPUtil a retourne le code {0}. Verifiez le journal." -f $code) 'ATTENTION' }
+}
+
+function Export-CurrentDrivers {
+    if (-not $script:Hardware) { $script:Hardware = Get-HardwareSnapshot; Update-HardwareUi $script:Hardware }
+    $folderName = (("{0}-{1}" -f $script:Hardware.Manufacturer, $script:Hardware.Model) -replace '[^A-Za-z0-9._-]', '_')
+    $destination = Join-Path $script:OfflineDriverDir $folderName
+    New-Item -ItemType Directory -Force -Path $destination | Out-Null
+    Write-Log ("Export des pilotes vers {0}..." -f $destination)
+    $code = Invoke-ProcessVisible -FilePath 'dism.exe' -Arguments @('/online','/export-driver',('/destination:"' + $destination + '"'))
+    if ($code -ne 0) { throw "DISM n'a pas pu exporter les pilotes (code $code)." }
+    Write-Log 'Pilotes du PC exportes sur la cle.' 'OK'
+    Update-OfflineStatus
+}
+
+function Install-GraphicsHelper($hardware) {
+    $helper = $null
+    if ($hardware.GPU -match '(?i)NVIDIA') {
+        $helper = [pscustomobject]@{ Name = 'NVIDIA App'; Id = 'Nvidia.NVIDIAApp'; Registry = 'NVIDIA App' }
+    } elseif ($hardware.GPU -match '(?i)Intel') {
+        $helper = [pscustomobject]@{ Name = 'Intel Driver & Support Assistant'; Id = 'Intel.IntelDriverAndSupportAssistant'; Registry = 'Intel Driver' }
+    } elseif ($hardware.GPU -match '(?i)AMD|Radeon') {
+        Write-Log 'GPU AMD detecte : le pilote signe Windows Update est conserve. Aucun utilitaire tiers ne sera installe.' 'ATTENTION'
+        return @([pscustomobject]@{ Name = 'Pilote graphique AMD'; Id = 'Windows Update'; Status = 'WINDOWS UPDATE'; Version = '-'; ExitCode = 0; Source = 'Microsoft' })
+    }
+    if (-not $helper) {
+        Write-Log 'Aucun outil graphique supplementaire applicable.'
+        return @()
+    }
+    Write-Log ("Outil graphique officiel detecte : {0}" -f $helper.Name)
+    return @(Install-SelectedApps @($helper))
+}
+
+function Install-WindowsUpdates([bool]$IncludeSoftware, [bool]$IncludeDrivers) {
+    if (-not (Test-Internet)) { throw 'Connexion Internet indisponible pour Windows Update.' }
+    $engine = Join-Path $script:EngineDir 'Moteur-WindowsUpdate.ps1'
+    $engineLog = Join-Path $script:LogDir ("WindowsUpdate-{0}.log" -f $script:SessionStamp)
+    $rebootMarker = Join-Path $script:LogDir ("Redemarrage-{0}.txt" -f $script:SessionStamp)
+    Write-Log 'Le moteur Windows Update travaille en arriere-plan. Cette operation peut etre longue.'
+    $arguments = @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $engine + '"'),
+      '-Software',([int]$IncludeSoftware),'-Drivers',([int]$IncludeDrivers),'-LogPath',('"' + $engineLog + '"'),'-RebootMarker',('"' + $rebootMarker + '"'))
+    $code = Invoke-ProcessVisible -FilePath 'powershell.exe' -Arguments $arguments
+    if (Test-Path $engineLog) {
+        foreach ($line in (Get-Content -LiteralPath $engineLog -ErrorAction SilentlyContinue)) { Write-Log $line 'UPDATE' }
+    }
+    if ($code -ne 0) { throw "Le moteur Windows Update a signale une erreur (code $code). Consultez le journal." }
+    if (Test-Path $rebootMarker) {
+        $script:RebootRequired = $true
+        $script:RestartButton.IsEnabled = $true
+        Write-Log 'Un redemarrage est recommande pour terminer les mises a jour.' 'ATTENTION'
+    }
+}
+
+function Convert-Html([object]$Value) {
+    return [System.Net.WebUtility]::HtmlEncode([string]$Value)
+}
+
+function New-DiagnosticReport($info, $installedApps) {
+    $safeName = ($info.ComputerName -replace '[^A-Za-z0-9_-]', '_')
+    $report = Join-Path $script:ReportDir ("Rapport-{0}-{1}.html" -f $safeName, $script:SessionStamp)
+    $diskRows = foreach ($disk in $info.Disks) {
+        $temperature = if ($null -ne $disk.Temperature) { "$($disk.Temperature) C" } else { '-' }
+        $wear = if ($null -ne $disk.Wear) { "$($disk.Wear)%" } else { '-' }
+        $hours = if ($null -ne $disk.PowerOnHours) { [string]$disk.PowerOnHours } else { '-' }
+        "<tr><td>$(Convert-Html $disk.Model)</td><td>$(Convert-Html $disk.BusType)</td><td>$($disk.SizeGB) Go</td><td>$(Convert-Html $disk.Health)</td><td>$temperature</td><td>$wear</td><td>$hours</td></tr>"
+    }
+    $errorRows = if ($info.DeviceErrors.Count -eq 0) {
+        '<tr><td colspan="3" class="ok">Aucun peripherique en erreur detecte</td></tr>'
+    } else {
+        foreach ($device in $info.DeviceErrors) {
+            "<tr><td>$(Convert-Html $device.Name)</td><td>$(Convert-Html $device.ConfigManagerErrorCode)</td><td>$(Convert-Html $device.PNPDeviceID)</td></tr>"
+        }
+    }
+    $appRows = if ($installedApps.Count -eq 0) {
+        '<tr><td colspan="6">Aucune application installee pendant cette session</td></tr>'
+    } else {
+        foreach ($app in $installedApps) {
+            $class = if ($app.Status -in @('OK','WINDOWS UPDATE')) { 'ok' } else { 'warn' }
+            "<tr><td>$(Convert-Html $app.Name)</td><td>$(Convert-Html $app.Version)</td><td class='$class'>$(Convert-Html $app.Status)</td><td>$(Convert-Html $app.Source)</td><td>$(Convert-Html $app.Locale)</td><td>$(Convert-Html $app.ExitCode)</td></tr>"
+        }
+    }
+    $driverRows = if ($info.Drivers.Count -eq 0) {
+        '<tr><td colspan="6">Aucun pilote principal retourne par Windows</td></tr>'
+    } else {
+        foreach ($driver in $info.Drivers) {
+            $date = if ($driver.DriverDate) { ([datetime]$driver.DriverDate).ToString('dd/MM/yyyy') } else { '-' }
