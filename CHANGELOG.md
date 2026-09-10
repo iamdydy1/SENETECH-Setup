@@ -1,5 +1,13 @@
 # Changelog SENETECH Setup — Develop
 
+## V1.6.0.10 DEV — 2026-09-10
+
+- Correction du crash lorsque le technicien clique sur **Voir les applications détectées** dans l'assistant Livraison/Vente.
+- L'ancien `DataGrid` WPF de l'aperçu est remplacé par une liste texte robuste avec scroll horizontal et vertical, plus compatible avec Windows PowerShell 5.1 et les anciens laptops Windows 10.
+- Toute erreur lors de l'inventaire ou de l'ouverture de la fenêtre est maintenant interceptée : SENETECH reste ouvert et écrit l'erreur dans le journal.
+- L'aperçu continue d'indiquer clairement quelles applications seront **CONSERVÉES** ou **SUPPRIMÉES** en mode PC propre.
+- La Stable V1.5.1 reste inchangée.
+
 ## V1.6.0.9 DEV — 2026-09-10
 
 - Correction spécifique de la fenêtre **FINALISER POUR LA VENTE** sur les petits écrans et laptops.
