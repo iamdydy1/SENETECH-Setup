@@ -3,12 +3,18 @@ name: Build SENETECH full installer
 on:
   workflow_dispatch:
   push:
+    branches:
+      - develop
     tags:
       - 'dev-v*'
       - 'stable-v*'
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: senetech-installer-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-installer:
@@ -24,6 +30,8 @@ jobs:
         run: |
           $m = Get-Content -LiteralPath ./version.json -Raw -Encoding UTF8 | ConvertFrom-Json
           if (-not $m.version -or -not $m.channel) { throw 'version.json incomplet.' }
+          if ([string]$m.version -notmatch '^\d+\.\d+\.\d+\.\d+$') { throw "Version invalide: $($m.version)" }
+          if ([string]$m.channel -notin @('develop','stable')) { throw "Canal invalide: $($m.channel)" }
           "SENETECH_VERSION=$($m.version)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "SENETECH_CHANNEL=$($m.channel)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "Build $($m.version) / $($m.channel) from commit $env:GITHUB_SHA"
@@ -79,6 +87,11 @@ jobs:
             throw "Unexpected installed executable set: $($appExes.Name -join ', ')"
           }
 
+          $buildInfo = Get-Content -LiteralPath (Join-Path $testDir 'SENETECH-BUILD-SOURCE.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+          if ([string]$buildInfo.version -ne [string]$env:SENETECH_VERSION) {
+            throw "Installed build metadata mismatch: $($buildInfo.version)"
+          }
+
           Write-Host 'Clean install + in-place replacement test passed.'
 
           $uninstaller = Join-Path $testDir 'unins000.exe'
@@ -86,6 +99,20 @@ jobs:
             $u = Start-Process -FilePath $uninstaller -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -PassThru -Wait
             Write-Host "Uninstaller exit code: $($u.ExitCode)"
           }
+
+      - name: Add GitHub Release URL to tagged manifest
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $path = '.\dist\installer\installer-manifest.json'
+          $m = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+          $tag = '${{ github.ref_name }}'
+          $repo = '${{ github.repository }}'
+          $m | Add-Member -NotePropertyName releaseTag -NotePropertyValue $tag -Force
+          $m | Add-Member -NotePropertyName commitSha -NotePropertyValue '${{ github.sha }}' -Force
+          $m | Add-Member -NotePropertyName installerUrl -NotePropertyValue ("https://github.com/$repo/releases/download/$tag/" + [string]$m.fileName) -Force
+          $m | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $path -Encoding UTF8
+          Write-Host "Release URL: $($m.installerUrl)"
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
@@ -97,3 +124,27 @@ jobs:
             dist/installer/installer-manifest.json
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish tagged GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $label = if ($env:SENETECH_CHANNEL -eq 'stable') { 'STABLE' } else { 'DEV' }
+          $installer = ".\dist\installer\SENETECH-Setup-$env:SENETECH_VERSION-$label.exe"
+          $shaFile = "$installer.sha256"
+          $manifest = '.\dist\installer\installer-manifest.json'
+
+          gh release view $tag *> $null
+          $exists = ($LASTEXITCODE -eq 0)
+          if (-not $exists) {
+            $args = @('release','create',$tag,$installer,$shaFile,$manifest,'--title',"SENETECH $env:SENETECH_VERSION $label",'--generate-notes')
+            if ($env:SENETECH_CHANNEL -ne 'stable') { $args += '--prerelease' }
+            & gh @args
+            if ($LASTEXITCODE -ne 0) { throw "GitHub Release creation failed: $LASTEXITCODE" }
+          } else {
+            gh release upload $tag $installer $shaFile $manifest --clobber
+            if ($LASTEXITCODE -ne 0) { throw "GitHub Release upload failed: $LASTEXITCODE" }
+          }
