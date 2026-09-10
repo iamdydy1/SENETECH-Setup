@@ -1,14 +1,15 @@
 SENETECH Setup
-Version 1.6.0.24
-Affichage : 1.6.0 DEV - build 24
+Version 1.6.0.25
+Affichage : 1.6.0 DEV - build 25 RECOVERY
 Canal : Développeur
 Branche : develop
 Windows : 10 / 11
 Mode : Portable + Installé
-Mises à jour : GitHub + migration de secours + rollback
-Migration : les installations hybrides 17/18 et le fallback Stable évitent désormais le patch build 20 fragile
-Updater : V23 avec bypass cache GitHub, préflight syntaxe PowerShell, logs détaillés et rollback propre
-Sécurité : patch de migration build 24 contrôlé par SHA-256 et figé sur commit Git
-Diagnostic : C:\ProgramData\SENETECH\Logs\SENETECH-Updater.log
-Démarrage : startup.begin / startup.ok / startup.error disponibles après migration
+Base moteur : snapshot exact V1.6.0.17 commit 7dc64fd
+Objectif : restaurer un SENETECH qui s ouvre réellement après la mise à jour
+Reporter : désactivé dans cette build de récupération
+Instrumentation startup : désactivée dans cette build de récupération
+Updater : V23 durci conservé pour les mises à jour suivantes
+Recovery externe : SENETECH-RECOVERY.ps1 disponible si l EXE actuel ne démarre plus
+Sécurité : base Stable V1.5.1 et patch recovery vérifiés par SHA-256
 Stable : V1.5.1 sur main inchangée
