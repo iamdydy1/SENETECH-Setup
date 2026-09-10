@@ -15,21 +15,16 @@ if (-not (Test-Path -LiteralPath $enginePath)) {
     throw "Moteur SENETECH introuvable : $enginePath"
 }
 
-# Recovery principle: rebuild from the last runtime proven to open on the real
-# Windows test machine (V1.6.0.17). Do not load Reporter or startup instrumentation.
-# The hardened updater is delivered later as an overlay and does not participate
-# in application startup.
-$pin = '04beb60182b49cd0b20ae1cfcb082d3aa3351b4a'
+# Recovery principle: rebuild from the exact last runtime proven to open on the
+# real Windows test machine (V1.6.0.17 commit 7dc64fd). Reporter and later
+# startup instrumentation are deliberately excluded from application startup.
+$pin = '7dc64fd1216068f3353f5ff4d65d750c26c75009'
 $build17PatchUrl = "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/$pin/src/PATCH-SENETECH-1.6.0-v19.ps1"
 $tmpPatch = Join-Path $env:TEMP ('SENETECH-RECOVERY-B17-' + [guid]::NewGuid().ToString('N') + '.ps1')
 
-# Detect whether the stage is already a clean build-17 engine. A full Stable
-# staging directory must be upgraded only to build 17, never through 18+.
 $engineText = [IO.File]::ReadAllText($enginePath,$utf8Bom)
 $isBuild17 = $engineText.Contains("`$script:AppVersion = '1.6.0.17'")
 if (-not $isBuild17) {
-    # If this is any later/broken DEV runtime, refuse incremental mutation.
-    # Recovery must start from the official Stable package to guarantee a clean base.
     if ($engineText -match "\$script:AppVersion\s*=\s*'1\.6\.0\.(1[8-9]|2[0-9])'") {
         throw 'Recovery build 25 exige une base Stable propre; runtime DEV tardif detecte.'
     }
@@ -45,8 +40,6 @@ $engineText = [IO.File]::ReadAllText($enginePath,$utf8Bom)
 if (-not $engineText.Contains("`$script:AppVersion = '1.6.0.17'")) {
     throw 'Recovery build 25 : moteur build 17 non obtenu.'
 }
-
-# No Reporter / startup instrumentation is allowed in this recovery runtime.
 if ($engineText.Contains('Senetech.Reporter.ps1') -or $engineText.Contains('Initialize-SenetechReporter')) {
     throw 'Recovery build 25 : integration Reporter inattendue dans le moteur de base.'
 }
@@ -82,11 +75,11 @@ Canal : Developpeur
 Branche : develop
 Windows : 10 / 11
 Mode : Portable + Installe
-Base moteur : V1.6.0.17 dernier demarrage reel valide
+Base moteur : snapshot exact V1.6.0.17 commit 7dc64fd
 Reporter : desactive dans cette build de recuperation
 Instrumentation startup : desactivee dans cette build de recuperation
 Updater : V23 durci livre en overlay pour les mises a jour suivantes
 Objectif : restaurer un SENETECH qui s ouvre avant de reintegrer les fonctions 18+
 '@
 
-Write-Output 'SENETECH V1.6.0 DEV build 25 RECOVERY - moteur last-known-good build 17 applique.'
+Write-Output 'SENETECH V1.6.0 DEV build 25 RECOVERY - snapshot last-known-good build 17 applique.'
