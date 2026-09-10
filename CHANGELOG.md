@@ -13,6 +13,13 @@
 - Téléchargement et extraction du futur package ZIP.
 - Vérification SHA-256 du package lorsqu'une nouvelle version est publiée.
 - Remplacement des fichiers puis relance automatique de `SENETECH-Setup.exe`.
+- Nettoyage automatique des fichiers temporaires après chaque mise à jour.
+- Suppression du ZIP de mise à jour dès son extraction terminée.
+- Le dossier `%TEMP%\SENETECH-Update` est réutilisé au lieu d'accumuler plusieurs versions.
+- Le journal d'update est recréé lorsqu'il dépasse 1 Mo.
+- Cache hors ligne optimisé : une seule version d'installateur doit être conservée par application.
+- Les anciennes versions d'une application sont remplacées uniquement après téléchargement réussi de la nouvelle.
+- Les pilotes hors ligne et les rapports utilisateur restent conservés.
 - Journal d'update dans `%TEMP%\SENETECH-Update.log`.
 - Compatibilité Windows PowerShell conservée.
 
