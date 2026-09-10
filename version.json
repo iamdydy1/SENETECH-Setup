@@ -1,7 +1,7 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.6.0.4",
+  "version": "1.6.0.5",
   "displayVersion": "1.6.0 DEV",
   "enabled": true,
   "mandatory": false,
@@ -11,7 +11,7 @@
   "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "basePackageSize": 109004,
   "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
-  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v6.ps1",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v7.ps1",
   "patchSha256": "",
   "overlayFiles": [
     {
@@ -57,24 +57,16 @@
     "_SENETECH/Catalog/profiles.json"
   ],
   "releaseNotes": [
-    "SENETECH V1.6.0 DEV - build 4",
-    "Correctif de relance automatique apres mise a jour en mode Portable",
-    "Copie des fichiers avec nouvelles tentatives si le lanceur est encore verrouille",
-    "Relance via un helper PowerShell independant avec plusieurs tentatives",
-    "Journalisation de la phase de copie et de relance dans SENETECH-Update.log",
-    "Nouveau mode Livraison / Vente avec assistant dedie",
-    "Deux finalisations : PC propre ou configuration client conservee",
-    "PC propre : suppression automatique des applications tierces detectees avec protection Windows, runtimes et pilotes",
-    "Configuration client : applications conservees et nettoyage des traces technicien uniquement",
-    "Apercu des applications avant toute suppression",
-    "Suppression differee du profil technicien au prochain demarrage",
-    "Preparation Windows OOBE sans reinstallation complete de Windows",
-    "Extinction automatique apres finalisation",
-    "SENETECH Welcome au premier profil client avec profils et applications facultatives via WinGet",
-    "Double confirmation VENTE avant la phase destructive",
+    "SENETECH V1.6.0 DEV - build 5",
+    "Correction de la regression updater introduite en build 4",
+    "Mode Installe : retour au mecanisme de relance precedent valide",
+    "Mode Portable : relance separee depuis le dossier propre de SENETECH",
+    "Suppression du helper PowerShell commun qui perturbait les deux modes",
+    "Mode Livraison / Vente avec PC propre ou configuration client conservee",
+    "Suppression differee du profil technicien et preparation OOBE",
+    "SENETECH Welcome au premier profil client",
     "Correctif des caracteres de la fenetre Demarrage Windows",
     "Catalogue applications et profils dynamique",
-    "Mise a jour des applications installees via WinGet",
     "Windows Update avance, diagnostics enrichis, historique et rollback"
   ]
 }
