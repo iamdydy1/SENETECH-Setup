@@ -1,73 +1,65 @@
 # SENETECH Setup
 
-Application portable SENETECH destinée à préparer et configurer les PC Windows.
+SENETECH est une application Windows de préparation, diagnostic, installation d'applications et maintenance légère de PC.
 
-## Version stable actuelle
+## Version de test actuelle
 
-- Version interne : **1.4.2.0**
-- Affichage : **V1.4.2**
-- Canal : **stable**
-- Lanceur : `SENETECH-Setup.exe`
+- Version : **1.5.0.0**
+- Affichage : **V1.5.0**
+- Canal : **test**
+- Windows : **10 / 11**
+- Déploiement : **Portable + Installé**
 
-## Mise à jour intégrée à V1.4.2
+## Une seule application, deux modes
 
-La source V1.4.2 intègre maintenant directement un bouton **Mise à jour** dans l'interface SENETECH.
+### Mode Portable
 
-Quand l'utilisateur clique dessus, l'application :
+SENETECH peut fonctionner directement depuis une clé USB ou un dossier, sans installation. Ce mode conserve les outils de préparation, le cache hors ligne, les pilotes et les rapports sur le support utilisé.
 
-1. vérifie la connexion Internet ;
-2. lit `version.json` depuis ce dépôt ;
-3. compare la version installée avec la version distante ;
-4. confirme que V1.4.2 est à jour si aucune version supérieure n'existe ;
-5. affiche les notes de version lorsqu'une nouvelle version est disponible ;
-6. demande confirmation avant installation ;
-7. télécharge le moteur `UPDATE-SENETECH.ps1` ;
-8. transmet le PID de SENETECH à l'updater ;
-9. ferme proprement l'application ;
-10. l'updater remplace les fichiers puis relance `SENETECH-Setup.exe`.
+Depuis l'interface V1.5.0, le bouton **Installer SENETECH sur ce PC** permet de transformer la même application en installation Windows permanente.
 
-## `version.json`
+### Mode Installé
 
-Le manifeste distant contient :
+Le runtime SENETECH est installé dans :
 
-- la dernière version disponible ;
-- l'état d'activation des mises à jour ;
-- le caractère obligatoire ou non de la mise à jour ;
-- l'URL du package ZIP ;
-- son empreinte SHA-256 ;
-- les notes de version.
+`C:\Program Files\SENETECH`
 
-## `UPDATE-SENETECH.ps1`
+L'installation crée :
 
-Le moteur de mise à jour :
+- un raccourci Bureau ;
+- un raccourci dans le menu Démarrer ;
+- une entrée **SENETECH Setup** dans les Applications installées de Windows ;
+- un désinstalleur intégré ;
+- un marqueur local indiquant que SENETECH tourne en mode Installé.
 
-1. vérifie à nouveau la version distante ;
-2. télécharge le ZIP de la nouvelle version ;
-3. vérifie son SHA-256 lorsqu'il est renseigné ;
-4. extrait les fichiers dans un dossier temporaire ;
-5. attend la fermeture du processus SENETECH ;
-6. remplace les fichiers de l'application ;
-7. relance `SENETECH-Setup.exe`.
+Les caches lourds de la clé USB ne sont pas copiés dans `Program Files`.
 
-Le journal d'update est écrit dans `%TEMP%\SENETECH-Update.log`.
+## Un seul système de mise à jour
 
-## Publication d'une future version
+Portable et Installé utilisent exactement le même dépôt et le même `version.json`.
 
-Exemple pour **V1.4.3** :
+Le bouton **Mise à jour** :
 
-1. Générer le nouveau dossier SENETECH puis `SENETECH-Setup.exe`.
-2. Créer un ZIP dont le contenu de l'application est directement à la racine du ZIP pour l'updater.
-3. Publier le ZIP sur GitHub.
-4. Calculer le SHA-256 du ZIP.
-5. Modifier `version.json` :
-   - `version` → `1.4.3.0`
-   - `displayVersion` → `1.4.3`
-   - `enabled` → `true`
-   - `downloadUrl` → URL directe du ZIP
-   - `sha256` → empreinte SHA-256 du ZIP
-   - `releaseNotes` → nouveautés de la version
-6. Tester la mise à jour depuis une V1.4.2 avant diffusion générale.
+1. lit `version.json` sur GitHub ;
+2. compare la version locale et la version distante ;
+3. affiche les notes de version ;
+4. demande confirmation ;
+5. télécharge et vérifie les composants de mise à jour ;
+6. ferme SENETECH ;
+7. remplace les fichiers nécessaires ;
+8. relance l'application ;
+9. nettoie les fichiers temporaires.
 
-## Sécurité
+En mode **Installé**, une vérification silencieuse est également effectuée quelques secondes après le lancement. Si une nouvelle version existe, l'utilisateur reçoit ensuite la proposition de mise à jour habituelle.
+
+## Installation automatique après préparation
+
+En mode Portable, la case **Installer SENETECH automatiquement à la fin de la préparation** permet à un technicien de préparer un PC puis d'y laisser SENETECH installé pour le client.
+
+## Sécurité des mises à jour
+
+Le package de base et les patchs peuvent être contrôlés par SHA-256 avant installation. La V1.5.0 reconstruit également son moteur depuis des fragments versionnés sur GitHub puis vérifie l'empreinte du moteur complet avant remplacement.
+
+Le moteur de mise à jour nettoie `%TEMP%\SENETECH-Update` après installation et limite l'accumulation de fichiers temporaires.
 
 Ne jamais mettre de mot de passe, token GitHub ou clé privée dans ce dépôt public.
