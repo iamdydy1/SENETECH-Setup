@@ -5,11 +5,12 @@
   "displayVersion": "1.5.1",
   "enabled": true,
   "mandatory": false,
-  "downloadUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/dist/SENETECH-Setup-V1.5.1-STABLE.zip",
+  "downloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "packageSize": 109004,
   "sha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
   "releaseNotes": [
     "SENETECH Setup V1.5.1 - base Stable officielle",
+    "Distribution via GitHub Releases",
     "Package complet avec SENETECH-Setup.exe, moteur et assets",
     "Modes Portable et Installe dans une seule application",
     "Canal Stable par defaut sur main",
