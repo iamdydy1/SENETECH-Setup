@@ -1,7 +1,7 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.6.0.7",
+  "version": "1.6.0.8",
   "displayVersion": "1.6.0 DEV",
   "enabled": true,
   "mandatory": false,
@@ -11,7 +11,7 @@
   "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "basePackageSize": 109004,
   "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
-  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v9.ps1",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v10.ps1",
   "patchSha256": "",
   "overlayFiles": [
     {
@@ -33,6 +33,10 @@
     {
       "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.WinGet.ps1",
       "path": "_SENETECH/Modules/Senetech.WinGet.ps1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Display.ps1",
+      "path": "_SENETECH/Modules/Senetech.Display.ps1"
     },
     {
       "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Client/SENETECH-Welcome.ps1",
@@ -57,18 +61,21 @@
     "_SENETECH/Modules/Senetech.StartupFix.ps1",
     "_SENETECH/Modules/Senetech.Delivery.ps1",
     "_SENETECH/Modules/Senetech.WinGet.ps1",
+    "_SENETECH/Modules/Senetech.Display.ps1",
     "_SENETECH/Client/SENETECH-Welcome.ps1",
     "_SENETECH/Catalog/apps.json",
     "_SENETECH/Catalog/profiles.json"
   ],
   "releaseNotes": [
-    "SENETECH V1.6.0 DEV - build 7",
+    "SENETECH V1.6.0 DEV - build 8",
+    "Interface responsive : adaptation automatique a la resolution et au DPI Windows",
+    "Petits ecrans et 1366x768 : SENETECH utilise automatiquement toute la zone disponible",
+    "Ecrans Full HD et superieurs : dimensions plafonnees pour conserver une interface lisible",
+    "Aucune modification de la resolution Windows de l utilisateur",
+    "Journalisation de la resolution, du DPI et du mode d affichage detecte",
     "Correction Windows 10 : App Installer deja present mais winget.exe non resolu",
-    "SENETECH recherche maintenant winget.exe directement dans le package App Installer installe",
-    "Si necessaire, reenregistrement du AppxManifest existant au lieu de tenter une retrogradation",
-    "La version App Installer deja plus recente est conservee",
-    "Bootstrap Microsoft utilise seulement si WinGet est reellement absent",
-    "Correction updater Portable/Installe de build 5 maintenue",
+    "Reenregistrement du package App Installer existant avant toute reinstallation",
+    "Correction updater Portable/Installe maintenue",
     "Mode Livraison / Vente avec PC propre ou configuration client conservee",
     "Suppression differee du profil technicien et preparation OOBE",
     "SENETECH Welcome au premier profil client",
