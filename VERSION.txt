@@ -1,11 +1,12 @@
 SENETECH Setup
-Version 1.6.0.10
+Version 1.6.0.11
 Affichage : 1.6.0 DEV
 Canal : Developpeur
 Branche : develop
 Windows : 10 / 11
 Mode : Portable + Installe
 Mises a jour : GitHub + SHA-256 + rollback
+Correctif : inventaire Livraison compatible avec les entrees registre sans DisplayName
 Correctif : apercu applications Livraison anti-crash sous Windows PowerShell 5.1
 Correctif : fenetre Livraison/Vente lisible et responsive sur petits ecrans
 Correctif : interface principale responsive selon resolution et DPI Windows
