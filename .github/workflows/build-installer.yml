@@ -2,6 +2,9 @@ name: Build SENETECH full installer
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
   push:
     branches:
       - develop
