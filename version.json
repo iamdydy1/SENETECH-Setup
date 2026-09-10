@@ -1,8 +1,8 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.6.0.19",
-  "displayVersion": "1.6.0 DEV - build 19",
+  "version": "1.6.0.20",
+  "displayVersion": "1.6.0 DEV - build 20",
   "enabled": true,
   "mandatory": false,
   "downloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
@@ -11,7 +11,7 @@
   "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "basePackageSize": 109004,
   "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
-  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v21.ps1",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v22.ps1",
   "patchSha256": "",
   "overlayFiles": [
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Catalog.ps1","path":"_SENETECH/Modules/Senetech.Catalog.ps1"},
@@ -31,6 +31,7 @@
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.ReporterUi.ps1","path":"_SENETECH/Modules/Senetech.ReporterUi.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Client/SENETECH-Welcome.ps1","path":"_SENETECH/Client/SENETECH-Welcome.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Moteur-WindowsUpdate.ps1","path":"_SENETECH/Moteur-WindowsUpdate.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/UPDATE-SENETECH-CHANNEL.ps1","path":"UPDATE-SENETECH-CHANNEL.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/catalog/apps.json","path":"_SENETECH/Catalog/apps.json"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/catalog/profiles.json","path":"_SENETECH/Catalog/profiles.json"}
   ],
@@ -51,22 +52,21 @@
     "_SENETECH/Modules/Senetech.Reporter.ps1",
     "_SENETECH/Modules/Senetech.ReporterUi.ps1",
     "_SENETECH/Client/SENETECH-Welcome.ps1",
+    "UPDATE-SENETECH-CHANNEL.ps1",
     "_SENETECH/Catalog/apps.json",
     "_SENETECH/Catalog/profiles.json"
   ],
   "releaseNotes": [
-    "SENETECH V1.6.0 DEV - build 19",
+    "SENETECH V1.6.0 DEV - build 20",
     "SENETECH Reporter via Cloudflare Worker conserve",
-    "Interface simplifiee : Assistance SENETECH",
-    "Bouton principal : Envoyer un rapport a SENETECH",
-    "Envoi automatique des erreurs, avertissements et succes importants lorsque autorise",
-    "Consentement modifiable depuis l interface",
-    "ID d installation aleatoire et ID d incident pour le suivi",
-    "Version SENETECH, Windows, modele du PC, etape et message technique inclus",
-    "Court extrait du journal en cas d erreur avec masquage des donnees sensibles",
-    "File d attente locale limitee si le service est temporairement indisponible",
-    "Le webhook Discord reste uniquement dans Cloudflare et n est pas embarque dans SENETECH",
+    "Assistance SENETECH et envoi de rapports techniques conserves",
+    "Envoi des erreurs, avertissements et succes importants lorsque autorise",
+    "ID d installation et ID d incident pour le suivi des machines",
+    "File d attente locale si le service est temporairement indisponible",
+    "Correctif du changement de canal : Develop vers Stable applique maintenant reellement la Stable officielle",
+    "Le retour Stable conserve la verification SHA-256 du package et le backup du runtime actuel",
+    "Le passage Stable vers Develop continue de fonctionner comme une mise a jour normale",
     "Grande verification, rollback, cache transactionnel et livraison conserves",
-    "Stable V1.5.1 inchangee"
+    "Stable V1.5.1 sur main reste inchangee"
   ]
 }
