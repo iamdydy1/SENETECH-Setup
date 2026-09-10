@@ -3,7 +3,42 @@
 
 function Get-SenetechReporterUiLabel {
     param([string]$Text)
-    return $Text.Replace('__agrave__',[string]([char]0x00E0)).Replace('__eacute__',[string]([char]0x00E9))
+    return $Text.Replace('__agrave__',[string]([char]0x00E0)).Replace('__eacute__',[string]([char]0x00E9)).Replace('__egrave__',[string]([char]0x00E8)).Replace('__ecirc__',[string]([char]0x00EA)).Replace('__ocirc__',[string]([char]0x00F4)).Replace('__cced__',[string]([char]0x00E7))
+}
+
+function Confirm-SenetechReporterConsent([switch]$ForcePrompt) {
+    Initialize-SenetechReporterStorage
+    $hasChoice = $false
+    if (Test-Path -LiteralPath $script:ReporterConfigPath) {
+        try {
+            $existing = Get-Content -LiteralPath $script:ReporterConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $hasChoice = ($null -ne $existing.enabled)
+        } catch { }
+    }
+    if ($hasChoice -and -not $ForcePrompt) { return $script:ReporterEnabled }
+
+    $message = Get-SenetechReporterUiLabel @'
+Autoriser l'envoi automatique __agrave__ SENETECH ?
+
+SENETECH peut envoyer uniquement des informations de fonctionnement : version SENETECH et Windows, fabricant/mod__egrave__le du PC, __eacute__tape en cours, r__eacute__sultat, message d'erreur et un court extrait du journal si n__eacute__cessaire.
+
+Aucun nom, e-mail, fichier personnel, mot de passe, num__eacute__ro de s__eacute__rie ou webhook Discord n'est envoy__eacute__.
+
+Vous pouvez d__eacute__sactiver l'envoi __agrave__ tout moment depuis Assistance SENETECH.
+'@
+
+    try {
+        $answer = [System.Windows.MessageBox]::Show(
+            $message,
+            Get-SenetechReporterUiLabel 'SENETECH - Autorisation d''envoi',
+            [System.Windows.MessageBoxButton]::YesNo,
+            [System.Windows.MessageBoxImage]::Information
+        )
+        Save-SenetechReporterConfig ($answer -eq [System.Windows.MessageBoxResult]::Yes)
+    } catch {
+        Save-SenetechReporterConfig $false
+    }
+    return $script:ReporterEnabled
 }
 
 function Add-SenetechReporterUi {
@@ -37,7 +72,7 @@ function Add-SenetechReporterUi {
             $script:ReporterStatusText.Text = 'Envoi automatique : ACTIF | ID : ' + $script:ReporterInstallationId
             $choice.Content = Get-SenetechReporterUiLabel 'D__eacute__sactiver / modifier'
         } else {
-            $script:ReporterStatusText.Text = 'Envoi automatique : DESACTIVE'
+            $script:ReporterStatusText.Text = Get-SenetechReporterUiLabel 'Envoi automatique : D__eacute__SACTIV__eacute__'
             $choice.Content = Get-SenetechReporterUiLabel 'Autoriser l''envoi'
         }
     }
@@ -52,7 +87,7 @@ function Add-SenetechReporterUi {
         $ok = Send-SenetechReporterEvent -Severity 'SUCCESS' -Stage 'Rapport manuel' -Message 'Rapport manuel envoye depuis SENETECH Setup.'
         if ($ok) {
             [System.Windows.MessageBox]::Show(
-                Get-SenetechReporterUiLabel 'Rapport envoy__eacute__ avec succ__eacute__s. Vous pouvez le retrouver dans le suivi SENETECH.',
+                Get-SenetechReporterUiLabel 'Rapport envoy__eacute__ avec succ__egrave__s. Vous pouvez le retrouver dans le suivi SENETECH.',
                 'SENETECH'
             ) | Out-Null
         } else {
@@ -74,7 +109,7 @@ function Add-SenetechReporterUi {
     [void]$panel.Children.Add($buttons)
 
     $hint = New-Object System.Windows.Controls.TextBlock
-    $hint.Text = Get-SenetechReporterUiLabel 'SENETECH peut envoyer automatiquement les erreurs, avertissements et succ__eacute__s importants lorsque l''envoi est autoris__eacute__.'
+    $hint.Text = Get-SenetechReporterUiLabel 'Les erreurs, avertissements et succ__egrave__s importants peuvent __ecirc__tre envoy__eacute__s automatiquement lorsque l''envoi est autoris__eacute__.'
     $hint.TextWrapping = 'Wrap'
     $hint.Foreground = '#6FAFD1'
     $hint.Margin = '0,3,0,0'
