@@ -142,6 +142,31 @@ function Save-RuntimeInventory {
     }
 }
 
+function Save-ExistingSenetechLogs {
+    try {
+        $sourceRoot = Join-Path $env:ProgramData 'SENETECH\Logs'
+        $destRoot = Join-Path $script:SessionRoot 'existing-logs'
+        New-Item -ItemType Directory -Path $destRoot -Force | Out-Null
+        if (-not (Test-Path -LiteralPath $sourceRoot)) { return }
+        $files = @(Get-ChildItem -LiteralPath $sourceRoot -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -notlike ($script:LogRoot + '*') } |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 20)
+        foreach ($f in $files) {
+            try {
+                if ($f.Length -gt 3MB) { continue }
+                $dest = Join-Path $destRoot $f.Name
+                $lines = @(Get-Content -LiteralPath $f.FullName -ErrorAction SilentlyContinue)
+                $safe = foreach ($line in $lines) { Protect-DevText ([string]$line) 5000 }
+                $safe | Set-Content -LiteralPath $dest -Encoding UTF8
+            } catch { }
+        }
+        Write-DevTrace 'INFO' ('Existing SENETECH logs copied: ' + $files.Count)
+    } catch {
+        Write-DevTrace 'WARNING' ('Unable to copy existing SENETECH logs: ' + $_.Exception.Message)
+    }
+}
+
 function Save-WindowsEvents {
     try {
         $from = $script:StartedAt.AddMinutes(-2)
@@ -166,11 +191,46 @@ function Save-WindowsEvents {
     }
 }
 
+function Ensure-ReporterConsent {
+    if ($NoRemote) { return $false }
+    try {
+        if (Test-Path -LiteralPath $script:ReporterConfig) {
+            $cfg = Get-Content -LiteralPath $script:ReporterConfig -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($null -ne $cfg.enabled) { return [bool]$cfg.enabled }
+        }
+
+        Add-Type -AssemblyName PresentationFramework -ErrorAction Stop
+        $answer = [System.Windows.MessageBox]::Show(
+            "Activer l envoi des resumes techniques du mode Developer vers SENETECH ?`r`n`r`nLes bundles complets restent uniquement sur ce PC. Les resumes distants sont anonymises et servent au diagnostic des builds Developer.",
+            'SENETECH - Diagnostic Developer',
+            [System.Windows.MessageBoxButton]::YesNo,
+            [System.Windows.MessageBoxImage]::Information
+        )
+        $enabled = ($answer -eq [System.Windows.MessageBoxResult]::Yes)
+        $dir = Split-Path -Parent $script:ReporterConfig
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        $installationId = 'SNTPC-' + ([guid]::NewGuid().ToString('N').Substring(0,10).ToUpperInvariant())
+        $data = [ordered]@{
+            schemaVersion = 1
+            enabled = $enabled
+            installationId = $installationId
+            updatedAt = (Get-Date).ToString('o')
+            endpoint = $script:ReporterEndpoint
+        }
+        $data | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $script:ReporterConfig -Encoding UTF8
+        return $enabled
+    } catch {
+        Write-DevTrace 'WARNING' ('Reporter consent unavailable: ' + $_.Exception.Message)
+        return $false
+    }
+}
+
 function Get-ReporterAllowed {
     if ($NoRemote) { return $false }
     try {
-        if (-not (Test-Path -LiteralPath $script:ReporterConfig)) { return $false }
+        if (-not (Test-Path -LiteralPath $script:ReporterConfig)) { return (Ensure-ReporterConsent) }
         $cfg = Get-Content -LiteralPath $script:ReporterConfig -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($null -eq $cfg.enabled) { return (Ensure-ReporterConsent) }
         return [bool]$cfg.enabled
     } catch { return $false }
 }
@@ -222,6 +282,7 @@ New-Item -ItemType Directory -Path $script:SessionRoot -Force | Out-Null
 Write-DevTrace 'INFO' 'SENETECH Developer diagnostic session started.'
 Save-SystemSnapshot
 Save-RuntimeInventory
+Save-ExistingSenetechLogs
 Send-DevReporter 'INFO' 'Developer diagnostic start' ('Session ' + $script:SessionId)
 
 $failed = $false
