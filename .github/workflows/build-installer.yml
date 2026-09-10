@@ -1,0 +1,99 @@
+name: Build SENETECH full installer
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'dev-v*'
+      - 'stable-v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build-installer:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@v4
+
+      - name: Read local manifest
+        shell: pwsh
+        run: |
+          $m = Get-Content -LiteralPath ./version.json -Raw -Encoding UTF8 | ConvertFrom-Json
+          if (-not $m.version -or -not $m.channel) { throw 'version.json incomplet.' }
+          "SENETECH_VERSION=$($m.version)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SENETECH_CHANNEL=$($m.channel)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Build $($m.version) / $($m.channel) from commit $env:GITHUB_SHA"
+
+      - name: Assemble deterministic full runtime
+        shell: powershell
+        run: |
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\Prepare-SenetechFullPackage.ps1 -ManifestPath .\version.json -OutputDir .\dist\runtime
+
+      - name: Ensure Inno Setup 6
+        shell: powershell
+        run: |
+          $iscc = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path -LiteralPath $iscc)) {
+            choco install innosetup -y --no-progress
+          }
+          if (-not (Test-Path -LiteralPath $iscc)) { throw 'Inno Setup 6 installation failed.' }
+          & $iscc /?
+
+      - name: Compile versioned installer
+        shell: powershell
+        run: |
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\Build-SenetechInstaller.ps1 -Version "$env:SENETECH_VERSION" -Channel "$env:SENETECH_CHANNEL" -SourceDir .\dist\runtime -OutputDir .\dist\installer
+
+      - name: Test clean install and in-place upgrade
+        shell: powershell
+        run: |
+          $label = if ($env:SENETECH_CHANNEL -eq 'stable') { 'STABLE' } else { 'DEV' }
+          $installer = Join-Path (Resolve-Path .\dist\installer) "SENETECH-Setup-$env:SENETECH_VERSION-$label.exe"
+          if (-not (Test-Path -LiteralPath $installer)) { throw "Installer missing: $installer" }
+
+          $testDir = Join-Path $env:TEMP 'SENETECH-INNO-CI'
+          Remove-Item -LiteralPath $testDir -Recurse -Force -ErrorAction SilentlyContinue
+
+          $args = @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',('/DIR="' + $testDir + '"'))
+          $p = Start-Process -FilePath $installer -ArgumentList $args -PassThru -Wait
+          if ($p.ExitCode -ne 0) { throw "First install failed: $($p.ExitCode)" }
+
+          foreach ($f in @('SENETECH-Setup.exe','VERSION.txt','_SENETECH\SENETECH-Setup.ps1','_SENETECH\SENETECH-Setup.manifest')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $testDir $f))) { throw "Installed file missing: $f" }
+          }
+
+          $obsolete = Join-Path $testDir '_SENETECH\OBSOLETE-CI.txt'
+          Set-Content -LiteralPath $obsolete -Value 'this file must be removed by the upgrade' -Encoding ASCII
+          if (-not (Test-Path -LiteralPath $obsolete)) { throw 'Unable to create obsolete marker.' }
+
+          $p2 = Start-Process -FilePath $installer -ArgumentList $args -PassThru -Wait
+          if ($p2.ExitCode -ne 0) { throw "Upgrade install failed: $($p2.ExitCode)" }
+          if (Test-Path -LiteralPath $obsolete) { throw 'Upgrade did not clean obsolete _SENETECH runtime.' }
+
+          $appExes = @(Get-ChildItem -LiteralPath $testDir -Filter 'SENETECH-Setup*.exe' -File -ErrorAction Stop)
+          if ($appExes.Count -ne 1 -or $appExes[0].Name -ne 'SENETECH-Setup.exe') {
+            throw "Unexpected installed executable set: $($appExes.Name -join ', ')"
+          }
+
+          Write-Host 'Clean install + in-place replacement test passed.'
+
+          $uninstaller = Join-Path $testDir 'unins000.exe'
+          if (Test-Path -LiteralPath $uninstaller) {
+            $u = Start-Process -FilePath $uninstaller -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -PassThru -Wait
+            Write-Host "Uninstaller exit code: $($u.ExitCode)"
+          }
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SENETECH-${{ env.SENETECH_VERSION }}-${{ env.SENETECH_CHANNEL }}-installer
+          path: |
+            dist/installer/*.exe
+            dist/installer/*.sha256
+            dist/installer/installer-manifest.json
+          if-no-files-found: error
+          retention-days: 30
