@@ -1,10 +1,11 @@
 SENETECH Setup
-Version 1.6.0.7
+Version 1.6.0.8
 Affichage : 1.6.0 DEV
 Canal : Developpeur
 Branche : develop
 Windows : 10 / 11
 Mode : Portable + Installe
 Mises a jour : GitHub + SHA-256 + rollback
+Correctif : interface responsive selon resolution et DPI Windows
 Correctif : App Installer deja present -> reactivation de WinGet sans retrogradation
 Nouveau : Livraison / Vente + OOBE + SENETECH Welcome
