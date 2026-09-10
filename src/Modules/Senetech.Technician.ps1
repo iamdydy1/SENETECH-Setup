@@ -118,7 +118,7 @@ function Invoke-SenetechAppUpdates {
             Write-Log 'Mozilla Firefox : mise a jour reportee car Firefox est ouvert. Fermez Firefox puis relancez la mise a jour des applications.' 'ATTENTION'
             continue
         }
-        $args = @('upgrade','--id',$app.Id,'--exact','--silent','--accept-package-agreements','--accept-source-agreements','--disable-interactivity','--locale',$locale)
+        $args = @('upgrade','--id',$app.Id,'--exact','--source','winget','--silent','--accept-package-agreements','--accept-source-agreements','--disable-interactivity','--locale',$locale)
         $code = Invoke-ProcessVisible -FilePath $winget.Source -Arguments $args
         $version = Get-InstalledAppVersion $app.Registry
         $status = if ($code -eq 0) { 'OK' } else { 'A JOUR / NON APPLICABLE' }

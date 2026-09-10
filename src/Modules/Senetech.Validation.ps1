@@ -198,6 +198,16 @@ function Get-SenetechAppInstalledState($App, [switch]$UseWingetFallback, $Winget
     return [pscustomobject]@{ Installed=$false; Version='-'; Detection='Aucune' }
 }
 
+function Wait-SenetechAppInstalledState($App, [switch]$UseWingetFallback, $Winget = $null, [int]$TimeoutSeconds = 12) {
+    $deadline = (Get-Date).AddSeconds([Math]::Max(1,$TimeoutSeconds))
+    $last = Get-SenetechAppInstalledState $App -UseWingetFallback:$UseWingetFallback -Winget $Winget
+    while (-not $last.Installed -and (Get-Date) -lt $deadline) {
+        Start-Sleep -Milliseconds 750
+        $last = Get-SenetechAppInstalledState $App -UseWingetFallback:$UseWingetFallback -Winget $Winget
+    }
+    return $last
+}
+
 # Stronger offline download routine. The previous cache is kept until the new
 # download has completed and received a SHA-256 fingerprint.
 function Save-AppsForOffline($Apps) {
@@ -316,12 +326,12 @@ function Install-SelectedApps($Apps) {
 
         try {
             if ($useWinget) {
-                $arguments = @('install','--id',$app.Id,'--exact','--silent','--locale',$locale,'--accept-package-agreements','--accept-source-agreements','--disable-interactivity')
+                $arguments = @('install','--id',$app.Id,'--exact','--source','winget','--silent','--locale',$locale,'--accept-package-agreements','--accept-source-agreements','--disable-interactivity')
                 $code = Invoke-ProcessVisible -FilePath $winget.Source -Arguments $arguments
                 if ($code -ne 0) {
                     Write-Log (Get-SenetechValidationText ('Installation de {0} indisponible en {1}, nouvel essai avec la langue propos{eacute}e par l''{eacute}diteur.' -f $app.Name,$locale)) 'ATTENTION'
                     $resultLocale = 'Editeur / automatique'
-                    $arguments = @('install','--id',$app.Id,'--exact','--silent','--accept-package-agreements','--accept-source-agreements','--disable-interactivity')
+                    $arguments = @('install','--id',$app.Id,'--exact','--source','winget','--silent','--accept-package-agreements','--accept-source-agreements','--disable-interactivity')
                     $code = Invoke-ProcessVisible -FilePath $winget.Source -Arguments $arguments
                 }
             } else {
@@ -338,8 +348,7 @@ function Install-SelectedApps($Apps) {
             Write-Log (Get-SenetechValidationText ('Erreur pendant l''installation de {0} : {1}' -f $app.Name,$_.Exception.Message)) 'ATTENTION'
         }
 
-        Start-Sleep -Milliseconds 700
-        $after = Get-SenetechAppInstalledState $app -UseWingetFallback:$useWinget -Winget $winget
+        $after = Wait-SenetechAppInstalledState $app -UseWingetFallback:$useWinget -Winget $winget -TimeoutSeconds 12
         if ($after.Installed) {
             Write-Log (Get-SenetechValidationText ('V{eacute}rification OK : {0} est bien install{eacute}. Version : {1}' -f $app.Name,$after.Version)) 'OK'
             $results += [pscustomobject]@{ Name=$app.Name; Id=$app.Id; Status='OK'; Version=$after.Version; ExitCode=$code; Source=$source; Locale=$resultLocale }
