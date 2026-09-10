@@ -1,11 +1,12 @@
 SENETECH Setup
-Version 1.6.0.9
+Version 1.6.0.10
 Affichage : 1.6.0 DEV
 Canal : Developpeur
 Branche : develop
 Windows : 10 / 11
 Mode : Portable + Installe
 Mises a jour : GitHub + SHA-256 + rollback
+Correctif : apercu applications Livraison anti-crash sous Windows PowerShell 5.1
 Correctif : fenetre Livraison/Vente lisible et responsive sur petits ecrans
 Correctif : interface principale responsive selon resolution et DPI Windows
 Correctif : App Installer deja present -> reactivation de WinGet sans retrogradation
