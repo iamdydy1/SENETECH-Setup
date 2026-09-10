@@ -1,5 +1,7 @@
-﻿SENETECH Setup
-Version 1.4.3.0
-Canal : Test GitHub Update
+SENETECH Setup
+Version 1.5.1.0
+Canal : Stable
+Branche : main
 Architecture : Windows 10 / 11
-Mode : Application portable
+Mode : Portable + Installe
+Developpement : branche develop
