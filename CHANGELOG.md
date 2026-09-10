@@ -1,5 +1,14 @@
 # Changelog SENETECH Setup — Develop
 
+## V1.6.0.11 DEV — 2026-09-10
+
+- Correction de l'erreur **« La propriété DisplayName est introuvable dans cet objet »** lors de l'ouverture de **Voir les applications détectées**.
+- Certaines clés de désinstallation Windows 10 peuvent exister sans propriété `DisplayName` ; SENETECH lit désormais toutes les propriétés du registre de façon défensive via `PSObject.Properties`.
+- Les entrées incomplètes sont ignorées proprement au lieu de faire échouer tout l'inventaire.
+- La même détection robuste est utilisée pour l'aperçu et pour le nettoyage des applications en mode **PC propre / vierge**.
+- Le garde-fou anti-crash de la build 10 reste actif : une erreur d'inventaire ne doit plus fermer SENETECH.
+- La Stable V1.5.1 reste inchangée.
+
 ## V1.6.0.10 DEV — 2026-09-10
 
 - Correction du crash lorsque le technicien clique sur **Voir les applications détectées** dans l'assistant Livraison/Vente.
