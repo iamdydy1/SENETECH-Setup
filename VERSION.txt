@@ -1,9 +1,9 @@
 SENETECH Setup
-Version 1.6.0.1
+Version 1.6.0.3
 Affichage : 1.6.0 DEV
 Canal : Developpeur
 Branche : develop
 Windows : 10 / 11
 Mode : Portable + Installe
 Mises a jour : GitHub + SHA-256 + rollback
-Correctif : UTF-8 Windows PowerShell 5.1
+Nouveau : Livraison / Vente + OOBE + SENETECH Welcome
