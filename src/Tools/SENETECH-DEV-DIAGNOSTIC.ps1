@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $script:StartedAt = Get-Date
 $script:SessionId = 'DEV-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + ([guid]::NewGuid().ToString('N').Substring(0,6).ToUpperInvariant())
-$script:Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$script:Root = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path))
 $script:EnginePath = Join-Path $script:Root '_SENETECH\SENETECH-Setup.ps1'
 $script:LogRoot = Join-Path $env:ProgramData 'SENETECH\Logs\Developer'
 $script:SessionRoot = Join-Path $script:LogRoot $script:SessionId
@@ -287,6 +287,7 @@ Send-DevReporter 'INFO' 'Developer diagnostic start' ('Session ' + $script:Sessi
 
 $failed = $false
 $topError = $null
+try { $global:Error.Clear() } catch { }
 
 if (-not $CollectOnly) {
     if (-not (Test-Path -LiteralPath $script:EnginePath)) {
@@ -295,6 +296,7 @@ if (-not $CollectOnly) {
     } else {
         try {
             Write-DevTrace 'INFO' ('Launching engine directly: ' + $script:EnginePath)
+            Set-Location -LiteralPath $script:Root
             $oldPreference = $ErrorActionPreference
             $ErrorActionPreference = 'Continue'
             & $script:EnginePath
