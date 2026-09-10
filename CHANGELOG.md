@@ -1,5 +1,14 @@
 # Changelog SENETECH Setup — Develop
 
+## V1.6.0.6 DEV — 2026-09-10
+
+- Sur un Windows 10/11 fraîchement installé, SENETECH ne s'arrête plus simplement sur **« WinGet est introuvable »**.
+- Ajout du module `Senetech.WinGet.ps1` pour détecter WinGet même lorsque l'alias `WindowsApps` n'est pas encore disponible.
+- Si WinGet est réellement absent et qu'Internet est disponible, SENETECH tente automatiquement l'installation/réparation officielle via `Microsoft.WinGet.Client` puis `Repair-WinGetPackageManager`.
+- L'installation des applications et la mise à jour des applications réutilisent ensuite le WinGet nouvellement installé.
+- En cas d'échec du bootstrap, SENETECH conserve une erreur explicite dans le journal au lieu de masquer le problème.
+- Le correctif reste sur `develop` jusqu'à validation sur une installation Windows fraîche.
+
 ## V1.6.0.5 DEV — 2026-09-10
 
 - Correction de la régression de relance introduite en build 1.6.0.4.
