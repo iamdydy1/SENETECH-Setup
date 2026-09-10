@@ -1,18 +1,60 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.5.1.0",
-  "displayVersion": "1.5.1",
+  "version": "1.6.0.0",
+  "displayVersion": "1.6.0 DEV",
   "enabled": true,
   "mandatory": false,
   "downloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "packageSize": 109004,
   "sha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
+  "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
+  "basePackageSize": 109004,
+  "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v2.ps1",
+  "patchSha256": "",
+  "overlayFiles": [
+    {
+      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Catalog.ps1",
+      "path": "_SENETECH/Modules/Senetech.Catalog.ps1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Technician.ps1",
+      "path": "_SENETECH/Modules/Senetech.Technician.ps1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Moteur-WindowsUpdate.ps1",
+      "path": "_SENETECH/Moteur-WindowsUpdate.ps1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/catalog/apps.json",
+      "path": "_SENETECH/Catalog/apps.json"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/catalog/profiles.json",
+      "path": "_SENETECH/Catalog/profiles.json"
+    }
+  ],
+  "requiredFiles": [
+    "_SENETECH/Modules/Senetech.Catalog.ps1",
+    "_SENETECH/Modules/Senetech.Technician.ps1",
+    "_SENETECH/Catalog/apps.json",
+    "_SENETECH/Catalog/profiles.json"
+  ],
   "releaseNotes": [
-    "SENETECH Setup V1.5.1 - base du canal Developpeur",
-    "Le canal develop repart exactement de la Stable V1.5.1",
-    "Package de base distribue via la Release Stable officielle",
-    "Aucune fonction experimentale supplementaire n'est publiee pour le moment",
-    "Les prochaines modifications seront publiees ici avant promotion sur main"
+    "SENETECH V1.6.0 DEV",
+    "Nouveau mode technicien et bouton PREPARER CE PC",
+    "Catalogue applications et profils dynamique",
+    "Profils Essentiel, Bureautique, Etudiant, Gaming, Createur, Developpement, PC leger et Personnalise",
+    "Mise a jour des applications installees via WinGet",
+    "Selection automatique de langue selon Windows lorsque disponible",
+    "Point de restauration avant preparation",
+    "Optimisations Gaming et PC leger reversibles",
+    "Gestion des applications au demarrage avec restauration",
+    "Nettoyage Windows securise",
+    "Windows Update avance avec pilotes et mises a jour facultatives optionnelles",
+    "Rapports enrichis : batterie, cycles, stockage, TPM, Secure Boot et demarrage",
+    "Historique des actions SENETECH",
+    "Sauvegarde automatique de la version precedente et rollback"
   ]
 }
