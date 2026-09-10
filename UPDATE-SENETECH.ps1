@@ -64,6 +64,47 @@ function Get-Sha256([string]$Path) {
     }
 }
 
+function Download-Package($Manifest) {
+    $headers = @{ "User-Agent" = "SENETECH-Setup/$CurrentVersion" }
+
+    # GitHub peut stocker le package sous forme de plusieurs fragments Base64.
+    # SENETECH les reassemble localement puis verifie le SHA-256 du ZIP final.
+    if ($Manifest.packageParts -and @($Manifest.packageParts).Count -gt 0) {
+        Write-Log "Telechargement du package SENETECH en plusieurs parties..."
+        $builder = New-Object System.Text.StringBuilder
+
+        foreach ($partUrl in @($Manifest.packageParts)) {
+            if ([string]::IsNullOrWhiteSpace([string]$partUrl)) { continue }
+            $partText = (Invoke-WebRequest -Uri ([string]$partUrl) -Headers $headers -UseBasicParsing).Content
+            $clean = ([string]$partText) -replace '\s', ''
+            [void]$builder.Append($clean)
+        }
+
+        if ($builder.Length -eq 0) {
+            throw "Aucune donnee de package n'a ete recue depuis GitHub."
+        }
+
+        try {
+            $bytes = [System.Convert]::FromBase64String($builder.ToString())
+        }
+        catch {
+            throw "Le package SENETECH recu depuis GitHub est invalide."
+        }
+
+        [System.IO.File]::WriteAllBytes($ZipPath, $bytes)
+        return
+    }
+
+    # Compatibilite avec une future GitHub Release ou un ZIP direct.
+    if (-not [string]::IsNullOrWhiteSpace([string]$Manifest.downloadUrl)) {
+        Write-Log "Telechargement du package SENETECH..."
+        Invoke-WebRequest -Uri ([string]$Manifest.downloadUrl) -Headers $headers -OutFile $ZipPath -UseBasicParsing
+        return
+    }
+
+    throw "Aucune source de telechargement n'est definie pour la version $($Manifest.version)."
+}
+
 Reset-LogIfNeeded
 
 try {
@@ -83,10 +124,6 @@ try {
         exit 0
     }
 
-    if ([string]::IsNullOrWhiteSpace([string]$manifest.downloadUrl)) {
-        throw "Aucune URL de telechargement n'est definie pour la version $($manifest.version)."
-    }
-
     # Une seule zone temporaire est reutilisee : aucune ancienne MAJ ne s'accumule.
     if (Test-Path $TempRoot) {
         Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
@@ -99,15 +136,18 @@ try {
     New-Item -ItemType Directory -Path $StageDir | Out-Null
 
     Write-Log "Nouvelle version detectee : $($manifest.version)"
-    Write-Log "Telechargement de la mise a jour..."
-    $headers = @{ "User-Agent" = "SENETECH-Setup/$CurrentVersion" }
-    Invoke-WebRequest -Uri ([string]$manifest.downloadUrl) -Headers $headers -OutFile $ZipPath -UseBasicParsing
+    Download-Package -Manifest $manifest
+
+    if (-not (Test-Path $ZipPath)) {
+        throw "Le package de mise a jour n'a pas ete cree."
+    }
 
     if (-not [string]::IsNullOrWhiteSpace([string]$manifest.sha256)) {
         $actualHash = Get-Sha256 -Path $ZipPath
         $expectedHash = ([string]$manifest.sha256).ToLowerInvariant()
         if ($actualHash -ne $expectedHash) {
-            throw "Le SHA-256 du fichier telecharge ne correspond pas au manifeste. Mise a jour annulee."
+            Remove-Item $ZipPath -Force -ErrorAction SilentlyContinue
+            throw "Le SHA-256 du package ne correspond pas au manifeste. Mise a jour annulee."
         }
         Write-Log "Verification SHA-256 OK."
     }
