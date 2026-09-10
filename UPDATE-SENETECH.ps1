@@ -19,6 +19,17 @@ $ZipPath = Join-Path $TempRoot "SENETECH-update.zip"
 $StageDir = Join-Path $TempRoot "stage"
 $LogPath = Join-Path $env:TEMP "SENETECH-Update.log"
 
+function Reset-LogIfNeeded {
+    try {
+        if (Test-Path $LogPath) {
+            $log = Get-Item $LogPath -ErrorAction Stop
+            if ($log.Length -gt 1048576) {
+                Remove-Item $LogPath -Force -ErrorAction SilentlyContinue
+            }
+        }
+    } catch {}
+}
+
 function Write-Log([string]$Message) {
     $stamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $line = "[$stamp] $Message"
@@ -52,6 +63,8 @@ function Get-Sha256([string]$Path) {
     }
 }
 
+Reset-LogIfNeeded
+
 try {
     Write-Log "Verification des mises a jour SENETECH..."
     $manifest = Get-RemoteManifest
@@ -73,8 +86,9 @@ try {
         throw "Aucune URL de telechargement n'est definie pour la version $($manifest.version)."
     }
 
+    # Toujours repartir d'un dossier temporaire propre pour eviter l'accumulation.
     if (Test-Path $TempRoot) {
-        Remove-Item $TempRoot -Recurse -Force
+        Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
     New-Item -ItemType Directory -Path $TempRoot | Out-Null
     New-Item -ItemType Directory -Path $StageDir | Out-Null
@@ -101,6 +115,9 @@ try {
         [System.IO.Compression.ZipFile]::ExtractToDirectory($ZipPath, $StageDir)
     }
 
+    # Le ZIP n'est plus utile une fois extrait.
+    Remove-Item $ZipPath -Force -ErrorAction SilentlyContinue
+
     $ApplyScript = Join-Path $TempRoot "APPLY-SENETECH-UPDATE.cmd"
     $restartLine = ""
     if (-not $NoRestart) {
@@ -119,6 +136,10 @@ if not errorlevel 1 (
 "@
     }
 
+    # Un second CMD supprime le dossier temporaire apres l'installation,
+    # afin que les anciennes MAJ ne restent jamais sur le PC.
+    $cleanupLine = 'start "" /b cmd.exe /c "ping 127.0.0.1 -n 5 >nul & rd /s /q ""' + $TempRoot + '"""'
+
     $cmd = @"
 @echo off
 setlocal
@@ -126,6 +147,7 @@ $waitBlock
 ping 127.0.0.1 -n 2 >nul
 xcopy "$StageDir\*" "$InstallDir\" /E /I /Y /Q >nul
 $restartLine
+$cleanupLine
 exit /b 0
 "@
     Set-Content -Path $ApplyScript -Value $cmd -Encoding ASCII
@@ -136,5 +158,10 @@ exit /b 0
 }
 catch {
     Write-Log "ERREUR: $($_.Exception.Message)"
+    try {
+        if (Test-Path $TempRoot) {
+            Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    } catch {}
     exit 1
 }
