@@ -1,0 +1,152 @@
+        [System.Windows.MessageBox]::Show($_.Exception.Message, 'SENETECH - Erreur') | Out-Null
+    } finally { Set-ControlsEnabled $true }
+})
+
+$ExportDriversButton.Add_Click({
+    $answer = [System.Windows.MessageBox]::Show(
+        'Les pilotes tiers du PC actuel seront copies sur la cle. Ils seront surtout utiles pour un modele identique. Continuer ?',
+        'Export des pilotes SENETECH', [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Question)
+    if ($answer -ne [System.Windows.MessageBoxResult]::Yes) { return }
+    try {
+        Set-ControlsEnabled $false
+        Set-Progress 20 'Export des pilotes'
+        Export-CurrentDrivers
+        Set-Progress 100 'Pilotes exportes'
+        [System.Windows.MessageBox]::Show('Les pilotes ont ete ajoutes au dossier Hors-ligne de la cle.', 'SENETECH Setup') | Out-Null
+    } catch {
+        Write-Log $_.Exception.Message 'ERREUR'
+        Set-Progress 0 'Export interrompu'
+        [System.Windows.MessageBox]::Show($_.Exception.Message, 'SENETECH - Erreur') | Out-Null
+    } finally { Set-ControlsEnabled $true }
+})
+
+$RestartButton.Add_Click({
+    $answer = [System.Windows.MessageBox]::Show(
+        'Le PC va redemarrer maintenant. Continuer ?', 'Redemarrage SENETECH',
+        [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Warning)
+    if ($answer -eq [System.Windows.MessageBoxResult]::Yes) { Restart-Computer -Force }
+})
+
+$StartButton.Add_Click({
+    $selectedApps = @(Get-SelectedApps)
+    $summary = @()
+    if ($AppsCheck.IsChecked -eq $true) { $summary += "Applications : $($selectedApps.Name -join ', ')" }
+    if ($UpdatesCheck.IsChecked -eq $true) { $summary += 'Mises a jour Windows' }
+    if ($DriversCheck.IsChecked -eq $true) { $summary += 'Pilotes via Windows Update' }
+    if ($GpuHelperCheck.IsChecked -eq $true) { $summary += 'Outil graphique officiel compatible' }
+    if ($DiagnosticCheck.IsChecked -eq $true) { $summary += 'Diagnostic et rapport' }
+    if (-not $script:IsInstalledMode -and $InstallAfterPrepCheck.IsChecked -eq $true) { $summary += 'Installer SENETECH sur ce PC en fin de preparation' }
+    if ($summary.Count -eq 0) {
+        [System.Windows.MessageBox]::Show('Selectionnez au moins une operation.', 'SENETECH Setup') | Out-Null
+        return
+    }
+    $answer = [System.Windows.MessageBox]::Show(
+        "Les operations suivantes vont etre lancees :`n`n- $($summary -join "`n- ")`n`nContinuer ?",
+        'Confirmation SENETECH', [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Question)
+    if ($answer -ne [System.Windows.MessageBoxResult]::Yes) { return }
+
+    try {
+        Set-ControlsEnabled $false
+        $script:ReportButton.IsEnabled = $false
+        $script:AppResults = @()
+        $script:RebootRequired = $false
+        $script:OperationNotes = @()
+        $script:RestartButton.IsEnabled = $false
+        Set-Progress 3 'Preparation'
+        if (-not $script:Hardware) {
+            $script:Hardware = Get-HardwareSnapshot
+            Update-HardwareUi $script:Hardware
+        }
+        $online = Test-Internet
+        if (-not $online) { Write-Log 'Mode hors ligne active : utilisation du contenu present sur la cle.' 'ATTENTION' }
+        if ($AppsCheck.IsChecked -eq $true -and $selectedApps.Count -gt 0) {
+            Set-Progress 15 'Installation des applications'
+            $script:AppResults += @(Install-SelectedApps $selectedApps)
+        }
+        if ($online -and ($UpdatesCheck.IsChecked -eq $true -or $DriversCheck.IsChecked -eq $true)) {
+            Set-Progress 55 'Windows Update et pilotes'
+            Install-WindowsUpdates ($UpdatesCheck.IsChecked -eq $true) ($DriversCheck.IsChecked -eq $true)
+        } elseif (-not $online) {
+            if ($UpdatesCheck.IsChecked -eq $true) {
+                Write-Log 'Windows Update ignore : aucune connexion Internet.' 'ATTENTION'
+                $script:OperationNotes += 'Windows Update reste a effectuer lorsque le PC sera connecte.'
+            }
+            if ($DriversCheck.IsChecked -eq $true) {
+                Set-Progress 55 'Pilotes hors ligne'
+                Install-OfflineDrivers
+            }
+        }
+        if ($GpuHelperCheck.IsChecked -eq $true) {
+            if ($online) {
+                Set-Progress 75 'Complement graphique officiel'
+                $script:AppResults += @(Install-GraphicsHelper $script:Hardware)
+            } else {
+                Write-Log 'Outil graphique officiel ignore : aucune connexion Internet.' 'ATTENTION'
+                $script:OperationNotes += 'Outil graphique officiel a verifier avec Internet.'
+            }
+        }
+        Set-Progress 85 'Controle final'
+        $script:Hardware = Get-HardwareSnapshot
+        Update-HardwareUi $script:Hardware
+        if ($DiagnosticCheck.IsChecked -eq $true) {
+            $script:LastReport = New-DiagnosticReport $script:Hardware $script:AppResults
+            $script:ReportButton.IsEnabled = $true
+            Write-Log ("Rapport cree : {0}" -f $script:LastReport) 'OK'
+        }
+        if (-not $script:IsInstalledMode -and $InstallAfterPrepCheck.IsChecked -eq $true) {
+            Set-Progress 94 'Installation de SENETECH sur ce PC'
+            $installedPath = Install-SenetechOnThisPc -Silent
+            if ($installedPath) {
+                $script:OperationNotes += ('SENETECH V{0} installe dans {1}.' -f $script:DisplayVersion, $installedPath)
+                Write-Log ('SENETECH installe sur ce PC en fin de preparation : {0}' -f $installedPath) 'OK'
+            }
+        }
+        Set-Progress 100 'Preparation terminee'
+        Write-Log 'Preparation SENETECH terminee. Verifiez le rapport et redemarrez manuellement le PC.' 'OK'
+        $endMessage = if ($script:RebootRequired) { 'Preparation terminee. Un redemarrage est recommande.' } elseif (-not $online) { 'Preparation hors ligne terminee. Consultez le rapport : certaines mises a jour peuvent rester a faire avec Internet.' } else { 'Preparation terminee. Aucun redemarrage impose par Windows Update.' }
+        [System.Windows.MessageBox]::Show($endMessage, 'SENETECH Setup') | Out-Null
+    } catch {
+        Write-Log $_.Exception.Message 'ERREUR'
+        Set-Progress 0 'Operation interrompue'
+        [System.Windows.MessageBox]::Show($_.Exception.Message, 'SENETECH - Erreur') | Out-Null
+    } finally { Set-ControlsEnabled $true }
+})
+
+Set-Profile 'Essentiel'
+Update-OfflineStatus
+Update-DeploymentUi
+Sync-SenetechInstalledRegistration
+$script:LastInternetState = Test-Internet
+$script:NetworkTimer = New-Object System.Windows.Threading.DispatcherTimer
+$script:NetworkTimer.Interval = [TimeSpan]::FromSeconds(30)
+$script:NetworkTimer.Add_Tick({
+    if ($script:IsBusy) { return }
+    $internetNow = Test-Internet 2000
+    if ($internetNow -and -not $script:LastInternetState -and $script:AutoCacheCheck.IsChecked -eq $true) {
+        Write-Log 'Une connexion Internet vient d''etre detectee.' 'OK'
+        Invoke-AutoCacheUpdate
+    }
+    $script:LastInternetState = $internetNow
+})
+$script:NetworkTimer.Start()
+
+# En mode installe, SENETECH verifie automatiquement GitHub quelques secondes apres le lancement.
+$script:StartupUpdateTimer = $null
+if ($script:IsInstalledMode) {
+    $script:StartupUpdateTimer = New-Object System.Windows.Threading.DispatcherTimer
+    $script:StartupUpdateTimer.Interval = [TimeSpan]::FromSeconds(5)
+    $script:StartupUpdateTimer.Add_Tick({
+        $script:StartupUpdateTimer.Stop()
+        if (-not $script:IsBusy) {
+            Invoke-SenetechUpdateCheck -SilentWhenCurrent
+        }
+    })
+    $script:StartupUpdateTimer.Start()
+}
+
+$window.Add_Closed({
+    try { $script:NetworkTimer.Stop() } catch {}
+    try { if ($script:StartupUpdateTimer) { $script:StartupUpdateTimer.Stop() } } catch {}
+})
+Write-Log ("SENETECH Setup V1.5.0 demarre | Mode : {0} | Langue Windows : {1} | Architecture : {2}" -f $script:DeploymentMode, (Get-PreferredLocale), (Get-AppArchitecture))
+[void]$window.ShowDialog()
