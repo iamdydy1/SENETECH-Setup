@@ -1,0 +1,195 @@
+    if (Test-Path -LiteralPath $logoPath) { $script:BrandLogo.Source = New-BrandBitmap $logoPath }
+    if (Test-Path -LiteralPath $windowIconPath) { $window.Icon = New-BrandBitmap $windowIconPath }
+} catch { }
+
+function Invoke-UiRefresh {
+    $frame = New-Object System.Windows.Threading.DispatcherFrame
+    [System.Windows.Threading.Dispatcher]::CurrentDispatcher.BeginInvoke(
+        [System.Windows.Threading.DispatcherPriority]::Background,
+        [System.Windows.Threading.DispatcherOperationCallback]{ param($f) $f.Continue = $false; return $null },
+        $frame
+    ) | Out-Null
+    [System.Windows.Threading.Dispatcher]::PushFrame($frame)
+}
+
+function Write-Log([string]$Message, [string]$Level = 'INFO') {
+    $line = "[{0}] [{1}] {2}" -f (Get-Date -Format 'HH:mm:ss'), $Level, $Message
+    Add-Content -LiteralPath $script:LogFile -Value $line -Encoding UTF8
+    $script:LogBox.AppendText($line + [Environment]::NewLine)
+    $script:LogBox.ScrollToEnd()
+    Invoke-UiRefresh
+}
+
+function Set-Progress([int]$Value, [string]$Message) {
+    $script:Progress.Value = [Math]::Max(0, [Math]::Min(100, $Value))
+    $script:StatusBadge.Text = $Message
+    $script:FooterText.Text = $Message
+    Invoke-UiRefresh
+}
+
+function Test-Internet([int]$TimeoutMs = 7000) {
+    try {
+        $request = [System.Net.WebRequest]::Create('https://www.microsoft.com/favicon.ico')
+        $request.Timeout = $TimeoutMs
+        $response = $request.GetResponse()
+        $response.Close()
+        return $true
+    } catch { return $false }
+}
+
+function Get-AppArchitecture {
+    $architecture = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
+    switch -Regex ([string]$architecture) {
+        'ARM64' { return 'arm64' }
+        'AMD64|IA64' { return 'x64' }
+        default { return 'x86' }
+    }
+}
+
+function Invoke-SenetechUpdateCheck([switch]$SilentWhenCurrent) {
+    if (-not (Test-Internet 3500)) {
+        if (-not $SilentWhenCurrent) {
+            [System.Windows.MessageBox]::Show(
+                'Aucune connexion Internet disponible. Impossible de verifier les mises a jour SENETECH.',
+                'SENETECH - Mise a jour',
+                [System.Windows.MessageBoxButton]::OK,
+                [System.Windows.MessageBoxImage]::Information) | Out-Null
+        }
+        return
+    }
+
+    try {
+        Set-ControlsEnabled $false
+        Set-Progress 15 'Verification de SENETECH'
+        Write-Log ('Verification GitHub de SENETECH V{0}...' -f $script:DisplayVersion) 'UPDATE'
+
+        try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch { }
+        $headers = @{ 'User-Agent' = ('SENETECH-Setup/{0}' -f $script:AppVersion) }
+        $manifest = Invoke-RestMethod -Uri $script:UpdateManifestUrl -Headers $headers -UseBasicParsing
+
+        $localVersion = New-Object System.Version($script:AppVersion)
+        $remoteVersion = New-Object System.Version([string]$manifest.version)
+
+        if ($remoteVersion -le $localVersion) {
+            Set-Progress 100 'SENETECH est a jour'
+            Write-Log ('SENETECH V{0} est deja a jour.' -f $script:DisplayVersion) 'OK'
+            if (-not $SilentWhenCurrent) {
+                [System.Windows.MessageBox]::Show(
+                    ('SENETECH V{0} est deja a jour.' -f $script:DisplayVersion),
+                    'SENETECH - Mise a jour',
+                    [System.Windows.MessageBoxButton]::OK,
+                    [System.Windows.MessageBoxImage]::Information) | Out-Null
+            }
+            return
+        }
+
+        if (-not $manifest.enabled) {
+            Set-Progress 100 'Mise a jour indisponible'
+            Write-Log ('Une version plus recente existe ({0}) mais sa diffusion est desactivee.' -f $manifest.displayVersion) 'ATTENTION'
+            if (-not $SilentWhenCurrent) {
+                [System.Windows.MessageBox]::Show(
+                    ('Une nouvelle version ({0}) est referencee mais sa diffusion n est pas encore activee.' -f $manifest.displayVersion),
+                    'SENETECH - Mise a jour',
+                    [System.Windows.MessageBoxButton]::OK,
+                    [System.Windows.MessageBoxImage]::Information) | Out-Null
+            }
+            return
+        }
+
+        $notes = @()
+        if ($manifest.releaseNotes) { $notes = @($manifest.releaseNotes | ForEach-Object { [string]$_ }) }
+        $notesText = ''
+        if ($notes.Count -gt 0) { $notesText = "`n`nNouveautes :`n- " + ($notes -join "`n- ") }
+        $mandatoryText = if ([bool]$manifest.mandatory) { "`n`nCette mise a jour est marquee comme importante." } else { '' }
+
+        $message = "Une nouvelle version de SENETECH est disponible.`n`nVersion installee : $($script:DisplayVersion)`nNouvelle version : $($manifest.displayVersion)$mandatoryText$notesText`n`nVoulez-vous l installer maintenant ?"
+        $answer = [System.Windows.MessageBox]::Show(
+            $message,
+            'SENETECH - Mise a jour disponible',
+            [System.Windows.MessageBoxButton]::YesNo,
+            [System.Windows.MessageBoxImage]::Question)
+
+        if ($answer -ne [System.Windows.MessageBoxResult]::Yes) {
+            Set-Progress 0 'Mise a jour reportee'
+            Write-Log 'Mise a jour SENETECH reportee par l utilisateur.' 'INFO'
+            return
+        }
+
+        Set-Progress 35 'Preparation de la mise a jour'
+        $updaterPath = Join-Path $env:TEMP 'SENETECH-UPDATE-SERVICE.ps1'
+        Invoke-WebRequest -Uri $script:UpdaterUrl -Headers $headers -OutFile $updaterPath -UseBasicParsing
+
+        $arguments = @(
+            '-NoProfile', '-ExecutionPolicy', 'Bypass',
+            '-File', ('"' + $updaterPath + '"'),
+            '-CurrentVersion', ('"' + $script:AppVersion + '"'),
+            '-InstallDir', ('"' + $script:Root + '"'),
+            '-WaitForProcessId', [string]$PID
+        )
+
+        Start-Process -FilePath 'powershell.exe' -ArgumentList ($arguments -join ' ') -WindowStyle Hidden | Out-Null
+        Write-Log ('Mise a jour vers V{0} acceptee. Fermeture de SENETECH pour installation.' -f $manifest.displayVersion) 'UPDATE'
+        Set-Progress 100 'Installation de la mise a jour'
+        $script:NetworkTimer.Stop()
+        $window.Close()
+    } catch {
+        Write-Log ('Echec de la verification des mises a jour : {0}' -f $_.Exception.Message) 'ERREUR'
+        Set-Progress 0 'Erreur de mise a jour'
+        [System.Windows.MessageBox]::Show(
+            ("Impossible de verifier ou de preparer la mise a jour SENETECH.`n`n" + $_.Exception.Message),
+            'SENETECH - Mise a jour',
+            [System.Windows.MessageBoxButton]::OK,
+            [System.Windows.MessageBoxImage]::Error) | Out-Null
+    } finally {
+        if ($window.IsVisible) { Set-ControlsEnabled $true }
+    }
+}
+
+function Get-PreferredLocale {
+    try {
+        $locale = [System.Globalization.CultureInfo]::CurrentUICulture.Name
+        if ($locale) { return $locale }
+    } catch { }
+    return 'fr-FR'
+}
+
+function Get-WindowsSupport([int]$BuildNumber) {
+    if ($BuildNumber -ge 22000) { return 'Windows 11 pris en charge' }
+    if ($BuildNumber -ge 10240) { return 'Windows 10 pris en charge' }
+    return 'Ancien Windows : diagnostic possible, installation non garantie'
+}
+
+function Get-ActivationState {
+    try {
+        $licensed = Get-CimInstance SoftwareLicensingProduct -Filter "ApplicationID='55c92734-d682-4d71-983e-d6ec3f16059f'" |
+            Where-Object { $_.PartialProductKey -and $_.LicenseStatus -eq 1 } | Select-Object -First 1
+        if ($licensed) { return 'Active' }
+        return 'Non active ou non detectee'
+    } catch { return 'Etat inconnu' }
+}
+
+function Get-StorageDetails {
+    $items = @()
+    try {
+        foreach ($disk in @(Get-PhysicalDisk -ErrorAction Stop)) {
+            $reliability = $null
+            try { $reliability = Get-StorageReliabilityCounter -PhysicalDisk $disk -ErrorAction Stop }
+            catch { }
+            $items += [pscustomobject]@{
+                Model = [string]$disk.FriendlyName
+                Serial = [string]$disk.SerialNumber
+                MediaType = [string]$disk.MediaType
+                BusType = [string]$disk.BusType
+                SizeGB = [Math]::Round([double]$disk.Size / 1GB, 0)
+                Health = [string]$disk.HealthStatus
+                Operational = ([string[]]$disk.OperationalStatus -join ', ')
+                Temperature = if ($reliability) { $reliability.Temperature } else { $null }
+                Wear = if ($reliability) { $reliability.Wear } else { $null }
+                PowerOnHours = if ($reliability) { $reliability.PowerOnHours } else { $null }
+                ReadErrors = if ($reliability) { $reliability.ReadErrorsTotal } else { $null }
+                WriteErrors = if ($reliability) { $reliability.WriteErrorsTotal } else { $null }
+            }
+        }
+    } catch {
+        foreach ($disk in @(Get-CimInstance Win32_DiskDrive)) {
+            $items += [pscustomobject]@{
