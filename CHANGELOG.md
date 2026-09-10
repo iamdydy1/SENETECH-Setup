@@ -1,5 +1,18 @@
 # Changelog SENETECH Setup — Develop
 
+## V1.6.0.5 DEV — 2026-09-10
+
+- Correction de la régression de relance introduite en build 1.6.0.4.
+- **Mode Installé** : retour au mécanisme de relance précédent, qui fonctionnait avant la modification 1.6.0.4.
+- **Mode Portable** : relance séparée depuis le propre dossier de SENETECH afin que les fichiers relatifs du runtime soient résolus correctement.
+- Suppression du helper PowerShell commun ajouté en 1.6.0.4, qui pouvait perturber Portable et Installé.
+- Le téléchargement, la vérification SHA-256, le backup/rollback et l'application de la mise à jour restent inchangés.
+
+## V1.6.0.4 DEV — 2026-09-10
+
+- Tentative de fiabilisation de la relance Portable avec un helper PowerShell et plusieurs tentatives.
+- Régression détectée ensuite sur les modes Portable et Installé ; cette mécanique a été retirée en 1.6.0.5.
+
 ## V1.6.0.3 DEV — 2026-09-10
 
 - Nouveau module **Livraison / Vente** destiné aux PC préparés pour revente.
