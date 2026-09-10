@@ -1,26 +1,16 @@
 SENETECH Setup
-Version 1.6.0.22
-Affichage : 1.6.0 DEV - build 22
+Version 1.6.0.23
+Affichage : 1.6.0 DEV - build 23
 Canal : Développeur
 Branche : develop
 Windows : 10 / 11
 Mode : Portable + Installé
-Mises à jour : GitHub + SHA-256 + rollback
-Updater : chemin incrémental direct pour les builds V1.6 existantes
-Diagnostic : stdout/stderr des patches conservés dans le journal permanent
-Journal updater : C:\ProgramData\SENETECH\Logs\SENETECH-Updater.log
-Vérification démarrage : marqueur après initialisation principale V1.6
-Sécurité : timeout PID + copie vérifiée + redémarrage contrôlé + rollback automatique
-Reporter : Cloudflare Worker + Discord côté serveur
-Interface : Assistance SENETECH + bouton Envoyer un rapport à SENETECH
-Confidentialité : autorisation explicite et modifiable avant envoi
-Rapports : erreurs, avertissements et succès importants
-Suivi : ID d'installation aléatoire + ID d'incident/événement
-Audit : sauvegarde d'état obligatoire + SHA-256
-Audit : vérification des prérequis avant préparation
-Audit : détection des applications déjà installées
-Audit : vérification réelle après chaque installation
-Audit : cache USB transactionnel et contrôlé par SHA-256
-Audit : Windows Update signale les échecs réels
-Audit : contrôle final global avant validation du PC
-Audit : rollback sécurisé et livraison/OOBE renforcée
+Mises à jour : GitHub + migration incrémentale + rollback
+Updater : V23 avec bypass cache GitHub et préflight syntaxe PowerShell
+Migration : build 17/18/19/20/21/22 vers build 23
+Sécurité : patches build 23 contrôlés par SHA-256 et fichiers figés sur commit Git
+Diagnostic : C:\ProgramData\SENETECH\Logs\SENETECH-Updater.log
+Démarrage : startup.begin / startup.ok / startup.error
+Rollback : restauration propre du runtime géré sans laisser les nouveaux fichiers du build échoué
+Reporter : non bloquant pour le démarrage de SENETECH
+Stable : V1.5.1 sur main inchangée
