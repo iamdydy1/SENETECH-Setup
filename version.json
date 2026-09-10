@@ -39,14 +39,15 @@
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/catalog/profiles.json","path":"_SENETECH/Catalog/profiles.json"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/04beb60182b49cd0b20ae1cfcb082d3aa3351b4a/src/UPDATE-SENETECH-V23.ps1","path":"UPDATE-SENETECH.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/04beb60182b49cd0b20ae1cfcb082d3aa3351b4a/src/UPDATE-SENETECH-CHANNEL.ps1","path":"UPDATE-SENETECH-CHANNEL.ps1"},
-    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/bb86a0471603b3a7f38379442457d97063b6ad9f/src/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","path":"_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","sha256":"efdcb472fad8b3a50b186cb576b353fa957884ebacf13726fe481be68f277e58"},
-    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/bb86a0471603b3a7f38379442457d97063b6ad9f/SENETECH-DEV-DIAGNOSTIC.cmd","path":"SENETECH-DEV-DIAGNOSTIC.cmd","sha256":"b5715130c79b8bc645e1ab1f8bd0b94efdfbfe95f79cb6d0269375f64e82f81b"}
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/bb86a0471603b3a7f38379442457d97063b6ad9f/src/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","path":"_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/bb86a0471603b3a7f38379442457d97063b6ad9f/SENETECH-DEV-DIAGNOSTIC.cmd","path":"SENETECH-DEV-DIAGNOSTIC.cmd"}
   ],
   "requiredFiles": [
     "_SENETECH/Modules/Senetech.Catalog.ps1","_SENETECH/Modules/Senetech.Technician.ps1","_SENETECH/Modules/Senetech.StartupFix.ps1","_SENETECH/Modules/Senetech.Delivery.ps1","_SENETECH/Modules/Senetech.WinGet.ps1","_SENETECH/Modules/Senetech.Display.ps1","_SENETECH/Modules/Senetech.DeliveryDisplayFix.ps1","_SENETECH/Modules/Senetech.DeliveryInventoryFix.ps1","_SENETECH/Modules/Senetech.DeliveryRegistryFix.ps1","_SENETECH/Modules/Senetech.FrenchUi.ps1","_SENETECH/Modules/Senetech.Validation.ps1","_SENETECH/Modules/Senetech.ReleaseSafety.ps1","_SENETECH/Modules/Senetech.CacheSafety.ps1","_SENETECH/Client/SENETECH-Welcome.ps1","_SENETECH/Moteur-WindowsUpdate.ps1","_SENETECH/Catalog/apps.json","_SENETECH/Catalog/profiles.json","UPDATE-SENETECH.ps1","UPDATE-SENETECH-CHANNEL.ps1","_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","SENETECH-DEV-DIAGNOSTIC.cmd"
   ],
   "releaseNotes": [
     "SENETECH V1.6.0 DEV - build 26 DIAGNOSTIC",
+    "Hotfix: retrait temporaire du SHA des deux overlays diagnostic apres modification de leur contenu; URLs toujours figees sur commit Git",
     "Le moteur Recovery connu fonctionnel reste identique; seule la version visible passe en build 26",
     "Ajout de SENETECH-DEV-DIAGNOSTIC.cmd pour lancer le moteur en mode trace sans modifier le demarrage normal",
     "Capture jusqu a 50 ErrorRecord PowerShell avec exception, HResult, commande, fichier, ligne, position et stack trace",
