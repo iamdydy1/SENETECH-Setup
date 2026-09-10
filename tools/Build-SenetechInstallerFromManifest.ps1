@@ -32,15 +32,12 @@ Write-Host " Canal   : $channel"
 Write-Host '============================================================'
 Write-Host ''
 
+# These are PowerShell scripts, not native executables. Let terminating errors
+# propagate naturally. $LASTEXITCODE may contain a stale value left by a native
+# command executed inside the child script and must not be used as its result.
 & (Join-Path $PSScriptRoot 'Prepare-SenetechFullPackage.ps1') -ManifestPath $ManifestPath -OutputDir $runtimeDir
-if ($LASTEXITCODE -ne 0) {
-    throw "Assemblage du runtime en echec : code $LASTEXITCODE"
-}
 
 & (Join-Path $PSScriptRoot 'Build-SenetechInstaller.ps1') -Version $version -Channel $channel -SourceDir $runtimeDir -OutputDir $installerDir
-if ($LASTEXITCODE -ne 0) {
-    throw "Compilation Inno Setup en echec : code $LASTEXITCODE"
-}
 
 $label = if ($channel -eq 'stable') { 'STABLE' } else { 'DEV' }
 $installer = Join-Path $installerDir "SENETECH-Setup-$version-$label.exe"
