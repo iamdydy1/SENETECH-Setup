@@ -165,6 +165,36 @@ function Get-SenetechAppInstalledState($App, [switch]$UseWingetFallback, $Winget
             return [pscustomobject]@{ Installed=$true; Version='Detectee par WinGet'; Detection='WinGet' }
         }
     }
+
+    # Firefox can survive an incomplete/unregistered installation and still be
+    # running from its executable. Reinstalling it in that state can replace the
+    # binaries underneath a newer active profile and display the XULRunner
+    # "profile was last used with a newer version" dialog. Treat a running or
+    # discoverable Firefox executable as installed, without touching user data.
+    if ([string]$App.Id -eq 'Mozilla.Firefox') {
+        $candidates = New-Object System.Collections.Generic.List[string]
+        foreach ($process in @(Get-Process -Name 'firefox' -ErrorAction SilentlyContinue)) {
+            try {
+                if ($process.Path) { [void]$candidates.Add([string]$process.Path) }
+            } catch { }
+        }
+        foreach ($root in @($env:ProgramFiles,${env:ProgramFiles(x86)},$env:LOCALAPPDATA)) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$root)) {
+                [void]$candidates.Add((Join-Path $root 'Mozilla Firefox\firefox.exe'))
+            }
+        }
+        foreach ($path in @($candidates | Select-Object -Unique)) {
+            if (Test-Path -LiteralPath $path) {
+                $detectedVersion = 'Firefox detecte'
+                try {
+                    $fileVersion = [Diagnostics.FileVersionInfo]::GetVersionInfo($path).ProductVersion
+                    if (-not [string]::IsNullOrWhiteSpace([string]$fileVersion)) { $detectedVersion = [string]$fileVersion }
+                } catch { }
+                Write-Log (Get-SenetechValidationText ('Firefox d{eacute}tect{eacute} hors registre : installation ignor{eacute}e pour prot{eacute}ger le profil existant. Version : {0}' -f $detectedVersion)) 'ATTENTION'
+                return [pscustomobject]@{ Installed=$true; Version=$detectedVersion; Detection='Executable Firefox' }
+            }
+        }
+    }
     return [pscustomobject]@{ Installed=$false; Version='-'; Detection='Aucune' }
 }
 

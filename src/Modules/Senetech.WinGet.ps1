@@ -182,6 +182,12 @@ function Invoke-SenetechAppUpdates {
     foreach ($app in $installed) {
         $index++
         Set-Progress ([Math]::Min(90, 10 + [int](80*$index/$installed.Count))) ("Mise a jour : {0}" -f $app.Name)
+        if ([string]$app.Id -eq 'Mozilla.Firefox' -and (@(Get-Process -Name 'firefox' -ErrorAction SilentlyContinue).Count -gt 0)) {
+            $version = Get-InstalledAppVersion $app.Registry
+            $results += [pscustomobject]@{ Name=$app.Name; Id=$app.Id; Status='REPORTEE - FIREFOX OUVERT'; Version=$version; ExitCode='SKIP'; Source='Protection profil Firefox'; Locale=$locale }
+            Write-Log 'Mozilla Firefox : mise a jour reportee car Firefox est ouvert. Fermez Firefox puis relancez la mise a jour des applications.' 'ATTENTION'
+            continue
+        }
         $args = @('upgrade','--id',$app.Id,'--exact','--silent','--accept-package-agreements','--accept-source-agreements','--disable-interactivity','--locale',$locale)
         $code = Invoke-ProcessVisible -FilePath $winget.Source -Arguments $args
         $version = Get-InstalledAppVersion $app.Registry
