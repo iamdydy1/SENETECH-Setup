@@ -1,127 +1,54 @@
-﻿SENETECH SETUP V1.4.3 - APPLICATION PORTABLE
-==========================================
+SENETECH SETUP V1.5.1 - VERSION STABLE
+=======================================
 
-CREER L'APPLICATION EXE (UNE SEULE FOIS)
------------------------------------------
-1. Decompressez tout le dossier sur la cle USB SENETECH.
-2. Double-cliquez sur CREER-SENETECH-EXE.cmd depuis un PC Windows 10 ou 11.
-3. Attendez le message confirmant la creation.
-4. SENETECH-Setup.exe apparait a la racine de la cle.
-5. Pour les utilisations suivantes, lancez uniquement SENETECH-Setup.exe.
+SENETECH est une application de preparation, diagnostic et maintenance legere pour Windows 10 et Windows 11.
 
-L'application EXE demande automatiquement les droits administrateur et lance
-l'interface sans fenetre PowerShell noire. Ne deplacez pas le fichier EXE hors
-du dossier complet : il utilise le moteur conserve dans _SENETECH.
+VERSION OFFICIELLE
+------------------
+Version : 1.5.1.0
+Canal : Stable
+Branche : main
+Modes : Portable + Installe
 
-La demande d'autorisation affiche maintenant SENETECH-Setup au lieu de Windows
-PowerShell. Tant qu'aucun certificat de signature de code n'a ete achete,
-Windows peut toutefois afficher "Editeur inconnu" dans cette fenetre.
-Les informations du fichier indiquent SENETECH, version 1.4.3.0.
+COMMENT RECUPERER SENETECH
+--------------------------
+Methode 1 - ZIP complet :
+1. Recuperer le ZIP officiel SENETECH V1.5.1 FULL transmis par SENETECH.
+2. Cliquer sur Extraire tout.
+3. Ouvrir le dossier extrait.
+4. Lancer SENETECH-Setup.exe.
 
-CONTENU
+Methode 2 - Telechargeur GitHub :
+1. Recuperer SENETECH-Download.cmd.
+2. Lancer le fichier.
+3. La version Stable est telechargee dans le dossier Telechargements\SENETECH-Setup.
+4. SENETECH se lance automatiquement une fois les fichiers prepares.
+
+Aucun compte GitHub n'est necessaire pour utiliser SENETECH ou recevoir les mises a jour.
+
+IMPORTANT
+---------
+Ne telechargez jamais un ancien SENETECH-Setup.exe isole depuis l'historique du depot. SENETECH utilise plusieurs fichiers runtime.
+
+Le telechargeur officiel et le ZIP complet s'occupent de fournir tous les fichiers necessaires.
+
+PORTABLE / INSTALLE
+-------------------
+Mode Portable : SENETECH fonctionne dans son dossier ou depuis une cle USB.
+Mode Installe : le meme SENETECH peut etre installe sur le PC avec raccourcis et desinstallation.
+
+STABLE / DEVELOPPEUR
+--------------------
+Stable : recommande pour les utilisateurs et les PC vendus.
+Developpeur : versions de test destinees au developpement avant validation.
+
+Le canal peut etre choisi dans Parametres a partir de V1.5.1.
+
+MISES A JOUR
+------------
+SENETECH consulte GitHub automatiquement. Lorsqu'une nouvelle version est disponible, il peut la telecharger et l'appliquer sans que l'utilisateur ait besoin d'ouvrir GitHub.
+
+SUPPORT
 -------
-- SENETECH-Setup.exe : point de lancement officiel apres creation.
-- CREER-SENETECH-EXE.cmd : fabrique l'EXE une seule fois sous Windows.
-- _SENETECH : moteur interne et mode de secours.
-- _SENETECH\Assets : logo complet et icones officielles SENETECH.
-- Logs : cree automatiquement au premier lancement.
-- Rapports : cree automatiquement au premier lancement.
-
-MISES A JOUR SENETECH
----------------------
-- Le bouton "Mise a jour" verifie le depot officiel GitHub SENETECH-Setup.
-- Si V1.4.3 est la derniere version, l application confirme qu elle est a jour.
-- Si une version plus recente est publiee, SENETECH affiche les nouveautes.
-- Apres confirmation, le nouvel updater est telecharge et SENETECH se ferme.
-- Le package est verifie avant remplacement, puis SENETECH redemarre automatiquement.
-- Une connexion Internet est necessaire uniquement pour rechercher/installer une mise a jour.
-
-PREPARATION DE LA CLE USB
--------------------------
-1. Formatez une cle USB en exFAT ou NTFS.
-2. Copiez le dossier SENETECH-Setup-V1.4.3 complet sur la cle.
-3. Sur le PC test, terminez d'abord l'installation de Windows 10 ou 11.
-4. Connectez le PC a Internet par cable Ethernet si possible.
-5. Ouvrez le dossier puis double-cliquez sur SENETECH-Setup.exe.
-6. Acceptez la demande de droits administrateur.
-7. Cliquez d'abord sur "Analyser le PC".
-8. Choisissez le profil et les operations.
-9. Cliquez sur "COMMENCER" puis confirmez la liste affichee.
-
-PREPARER LE MODE HORS LIGNE
----------------------------
-1. Connectez le PC a Internet.
-2. Selectionnez les applications a conserver sur la cle.
-3. Cliquez sur "Telecharger les applications".
-4. Attendez la fin de chaque telechargement.
-5. Pour sauvegarder les pilotes du PC actuel, cliquez sur "Exporter les pilotes".
-
-Quand SENETECH Setup reste ouvert, il controle Internet toutes les 30 secondes.
-Si la connexion revient et que l'option automatique est cochee, il actualise
-les applications deja presentes dans le cache. Un cache vide n'est jamais
-rempli sans votre premier choix manuel.
-
-UTILISATION SANS INTERNET
--------------------------
-- Les applications disponibles dans Hors-ligne\Applications sont installees.
-- Les pilotes INF compatibles dans Hors-ligne\Pilotes sont proposes a Windows.
-- Les applications absentes sont signalees sans bloquer le reste.
-- Windows Update et l'outil graphique en ligne sont ignores et notes au rapport.
-- Un pilote exporte depuis un PC est surtout destine au meme modele de PC.
-
-IMPORTANT POUR CE PREMIER TEST
-------------------------------
-- Aucun disque n'est efface.
-- Aucun compte Windows n'est supprime.
-- Sysprep n'est pas lance.
-- Aucun redemarrage automatique n'est effectue.
-- Les applications sont telechargees avec WinGet.
-- La langue de Windows est detectee et demandee a WinGet (fr-FR sur un PC francais).
-- Si cette langue n'est pas proposee, l'installateur officiel choisit sa langue par defaut.
-- Les pilotes sont recherches avec Windows Update.
-- Le mode hors ligne utilise les installateurs et pilotes places sur la cle.
-- Le resultat et la version de chaque application sont ajoutes au rapport.
-- Les versions des principaux pilotes sont ajoutees au rapport.
-- Le rapport essaie de lire la sante, la temperature, l'usure et les heures des disques.
-- Le Wi-Fi, le Bluetooth, l'audio et la camera sont detectes lorsqu'ils sont presents.
-- Un outil graphique officiel NVIDIA ou Intel peut etre ajoute en option.
-- Un bouton de redemarrage est active uniquement lorsque Windows Update le demande.
-- Certaines mises a jour peuvent necessiter un redemarrage manuel.
-- Microsoft Office n'est pas installe ou active automatiquement.
-
-PROFIL GAMING COMPLET
----------------------
-- Chrome, 7-Zip, VLC, Discord et Steam.
-- Epic Games Launcher, EA App, Ubisoft Connect, Battle.net et GOG Galaxy.
-- OBS Studio pour l'enregistrement et le streaming.
-- Microsoft Visual C++ 2015-2022 x64 et x86.
-- Microsoft DirectX Runtime.
-- Outil officiel NVIDIA ou Intel propose selon la carte graphique detectee.
-
-SI WINGET EST INTROUVABLE
--------------------------
-SENETECH utilise automatiquement les installateurs presents dans le cache USB.
-Pour retablir les telechargements Internet, ouvrez Microsoft Store, recherchez
-"App Installer", installez-le ou mettez-le a jour, puis relancez SENETECH.
-
-COMPATIBILITE WINDOWS
----------------------
-- Windows 11 Famille, Professionnel, Education et Entreprise : pris en charge.
-- Windows 10 Famille, Professionnel, Education et Entreprise : pris en charge.
-- Architectures x64, x86 et ARM64 : detectees automatiquement lorsque les
-  applications choisies proposent un installateur compatible.
-- Windows 7, 8 et 8.1 : diagnostic partiel possible, mais installation non
-  garantie car ces systemes et plusieurs services Microsoft sont abandonnes.
-
-CONTROLES PHYSIQUES A FAIRE MANUELLEMENT
-----------------------------------------
-- Ecran et pixels morts
-- Clavier et pave tactile
-- Ports USB et video
-- Webcam et microphone
-- Haut-parleurs
-- Wi-Fi et Bluetooth
-- Chargeur
-- Etat esthetique
-
-Les fichiers de journal et les rapports restent dans le dossier de la cle USB.
+En cas d'erreur de mise a jour, le journal technique se trouve dans :
+%TEMP%\SENETECH-Update.log
