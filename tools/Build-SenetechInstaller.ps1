@@ -13,6 +13,13 @@ if ($Version -notmatch '^\d+\.\d+\.\d+\.\d+$') {
 }
 if (-not (Test-Path -LiteralPath $IssPath)) { throw "Script Inno Setup introuvable : $IssPath" }
 if (-not (Test-Path -LiteralPath $SourceDir)) { throw "Runtime complet introuvable : $SourceDir" }
+
+# Inno Setup resolves relative Source/Output paths from the .iss location.
+# Always feed absolute paths so local builds and GitHub Actions produce the same result.
+$IssPath = (Resolve-Path -LiteralPath $IssPath).Path
+$SourceDir = (Resolve-Path -LiteralPath $SourceDir).Path
+$OutputDir = [IO.Path]::GetFullPath($OutputDir)
+
 foreach ($required in @('SENETECH-Setup.exe','VERSION.txt','_SENETECH\SENETECH-Setup.ps1','_SENETECH\SENETECH-Setup.manifest')) {
     if (-not (Test-Path -LiteralPath (Join-Path $SourceDir $required))) { throw "Runtime incomplet : $required" }
 }
@@ -30,6 +37,9 @@ New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 $channelLabel = if ($Channel -eq 'stable') { 'STABLE' } else { 'DEV' }
 
 Write-Host "[SENETECH] Compilation Inno Setup $Version $channelLabel"
+Write-Host "[SENETECH] Source runtime : $SourceDir"
+Write-Host "[SENETECH] Output installer : $OutputDir"
+
 & $iscc "/DAppVersion=$Version" "/DChannel=$channelLabel" "/DSourceDir=$SourceDir" "/DOutputDir=$OutputDir" $IssPath
 if ($LASTEXITCODE -ne 0) { throw "Compilation Inno Setup échouée (code $LASTEXITCODE)." }
 
@@ -40,7 +50,7 @@ if (-not (Test-Path -LiteralPath $installer)) { throw "Installateur attendu intr
 $hash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
 $size = (Get-Item -LiteralPath $installer).Length
 $metadata = [ordered]@{
-    schemaVersion = 1
+    schemaVersion = 2
     product = 'SENETECH Setup'
     packageType = 'inno'
     version = $Version
@@ -54,7 +64,7 @@ $metadata = [ordered]@{
     builtAt = (Get-Date).ToUniversalTime().ToString('o')
 }
 $metadataPath = Join-Path $OutputDir 'installer-manifest.json'
-$metadata | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $metadataPath -Encoding UTF8
+$metadata | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $metadataPath -Encoding UTF8
 ("{0}  {1}" -f $hash,$expectedName) | Set-Content -LiteralPath (Join-Path $OutputDir ($expectedName + '.sha256')) -Encoding ASCII
 
 Write-Host "[SENETECH] Installateur : $installer"
