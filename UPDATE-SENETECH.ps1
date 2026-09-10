@@ -1,221 +1,123 @@
 param(
-    [Parameter(Mandatory=$false)]
-    [string]$CurrentVersion = "1.4.2.0",
-
-    [Parameter(Mandatory=$false)]
+    [string]$CurrentVersion = '1.4.2.0',
     [string]$InstallDir = (Split-Path -Parent $MyInvocation.MyCommand.Path),
-
-    [Parameter(Mandatory=$false)]
     [int]$WaitForProcessId = 0,
-
-    [Parameter(Mandatory=$false)]
     [switch]$NoRestart
 )
 
-$ErrorActionPreference = "Stop"
-$ManifestUrl = "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/version.json"
-$TempRoot = Join-Path $env:TEMP "SENETECH-Update"
-$ZipPath = Join-Path $TempRoot "SENETECH-update.zip"
-$StageDir = Join-Path $TempRoot "stage"
-$LogPath = Join-Path $env:TEMP "SENETECH-Update.log"
-$CleanupScript = Join-Path $env:TEMP "SENETECH-Cleanup.cmd"
+$ErrorActionPreference = 'Stop'
+$ManifestUrl = 'https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/version.json'
+$TempRoot = Join-Path $env:TEMP 'SENETECH-Update'
+$ZipPath = Join-Path $TempRoot 'package.zip'
+$StageDir = Join-Path $TempRoot 'stage'
+$LogPath = Join-Path $env:TEMP 'SENETECH-Update.log'
+$Cleanup = Join-Path $env:TEMP 'SENETECH-Cleanup.cmd'
 
-function Reset-LogIfNeeded {
-    try {
-        if (Test-Path $LogPath) {
-            $log = Get-Item $LogPath -ErrorAction Stop
-            if ($log.Length -gt 1048576) {
-                Remove-Item $LogPath -Force -ErrorAction SilentlyContinue
-            }
-        }
-    } catch {}
-}
-
-function Write-Log([string]$Message) {
-    $stamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $line = "[$stamp] $Message"
-    Write-Host $line
+function Log([string]$Text) {
+    $line = '[{0}] {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Text
     try { Add-Content -Path $LogPath -Value $line -Encoding UTF8 } catch {}
 }
 
-function Get-RemoteManifest {
+function Hash256([string]$Path) {
+    $stream = [IO.File]::OpenRead($Path)
     try {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    } catch {}
-
-    $headers = @{ "User-Agent" = "SENETECH-Setup/$CurrentVersion" }
-    return Invoke-RestMethod -Uri $ManifestUrl -Headers $headers -UseBasicParsing
+        $sha = [Security.Cryptography.SHA256]::Create()
+        try { return ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-','').ToLowerInvariant() }
+        finally { $sha.Dispose() }
+    }
+    finally { $stream.Dispose() }
 }
-
-function Get-Sha256([string]$Path) {
-    $stream = [System.IO.File]::OpenRead($Path)
-    try {
-        $sha = [System.Security.Cryptography.SHA256]::Create()
-        try {
-            $bytes = $sha.ComputeHash($stream)
-            return ([System.BitConverter]::ToString($bytes)).Replace("-", "").ToLowerInvariant()
-        }
-        finally {
-            $sha.Dispose()
-        }
-    }
-    finally {
-        $stream.Dispose()
-    }
-}
-
-function Download-Package($Manifest) {
-    $headers = @{ "User-Agent" = "SENETECH-Setup/$CurrentVersion" }
-
-    # GitHub peut stocker le package sous forme de plusieurs fragments Base64.
-    # SENETECH les reassemble localement puis verifie le SHA-256 du ZIP final.
-    if ($Manifest.packageParts -and @($Manifest.packageParts).Count -gt 0) {
-        Write-Log "Telechargement du package SENETECH en plusieurs parties..."
-        $builder = New-Object System.Text.StringBuilder
-
-        foreach ($partUrl in @($Manifest.packageParts)) {
-            if ([string]::IsNullOrWhiteSpace([string]$partUrl)) { continue }
-            $partText = (Invoke-WebRequest -Uri ([string]$partUrl) -Headers $headers -UseBasicParsing).Content
-            $clean = ([string]$partText) -replace '\s', ''
-            [void]$builder.Append($clean)
-        }
-
-        if ($builder.Length -eq 0) {
-            throw "Aucune donnee de package n'a ete recue depuis GitHub."
-        }
-
-        try {
-            $bytes = [System.Convert]::FromBase64String($builder.ToString())
-        }
-        catch {
-            throw "Le package SENETECH recu depuis GitHub est invalide."
-        }
-
-        [System.IO.File]::WriteAllBytes($ZipPath, $bytes)
-        return
-    }
-
-    # Compatibilite avec une future GitHub Release ou un ZIP direct.
-    if (-not [string]::IsNullOrWhiteSpace([string]$Manifest.downloadUrl)) {
-        Write-Log "Telechargement du package SENETECH..."
-        Invoke-WebRequest -Uri ([string]$Manifest.downloadUrl) -Headers $headers -OutFile $ZipPath -UseBasicParsing
-        return
-    }
-
-    throw "Aucune source de telechargement n'est definie pour la version $($Manifest.version)."
-}
-
-Reset-LogIfNeeded
 
 try {
-    Write-Log "Verification des mises a jour SENETECH..."
-    $manifest = Get-RemoteManifest
+    try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
+    $headers = @{ 'User-Agent' = "SENETECH-Setup/$CurrentVersion" }
+    $m = Invoke-RestMethod -Uri $ManifestUrl -Headers $headers -UseBasicParsing
 
-    if (-not $manifest.enabled) {
-        Write-Log "Les mises a jour distantes sont actuellement desactivees."
-        exit 0
-    }
+    if (-not $m.enabled) { exit 0 }
+    if ((New-Object Version([string]$m.version)) -le (New-Object Version($CurrentVersion))) { exit 0 }
 
-    $local = New-Object System.Version($CurrentVersion)
-    $remote = New-Object System.Version([string]$manifest.version)
+    if (Test-Path $TempRoot) { Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue }
+    if (Test-Path $Cleanup) { Remove-Item $Cleanup -Force -ErrorAction SilentlyContinue }
+    New-Item -ItemType Directory -Path $StageDir -Force | Out-Null
 
-    if ($remote -le $local) {
-        Write-Log "SENETECH est deja a jour ($CurrentVersion)."
-        exit 0
-    }
-
-    # Une seule zone temporaire est reutilisee : aucune ancienne MAJ ne s'accumule.
-    if (Test-Path $TempRoot) {
-        Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
-    }
-    if (Test-Path $CleanupScript) {
-        Remove-Item $CleanupScript -Force -ErrorAction SilentlyContinue
-    }
-
-    New-Item -ItemType Directory -Path $TempRoot | Out-Null
-    New-Item -ItemType Directory -Path $StageDir | Out-Null
-
-    Write-Log "Nouvelle version detectee : $($manifest.version)"
-    Download-Package -Manifest $manifest
-
-    if (-not (Test-Path $ZipPath)) {
-        throw "Le package de mise a jour n'a pas ete cree."
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace([string]$manifest.sha256)) {
-        $actualHash = Get-Sha256 -Path $ZipPath
-        $expectedHash = ([string]$manifest.sha256).ToLowerInvariant()
-        if ($actualHash -ne $expectedHash) {
-            Remove-Item $ZipPath -Force -ErrorAction SilentlyContinue
-            throw "Le SHA-256 du package ne correspond pas au manifeste. Mise a jour annulee."
+    Log "Downloading SENETECH $($m.version)"
+    if ($m.packageParts -and @($m.packageParts).Count -gt 0) {
+        $b = New-Object Text.StringBuilder
+        foreach ($url in @($m.packageParts)) {
+            $t = (Invoke-WebRequest -Uri ([string]$url) -Headers $headers -UseBasicParsing).Content
+            [void]$b.Append((([string]$t) -replace '\s',''))
         }
-        Write-Log "Verification SHA-256 OK."
+        [IO.File]::WriteAllBytes($ZipPath, [Convert]::FromBase64String($b.ToString()))
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace([string]$m.downloadUrl)) {
+        Invoke-WebRequest -Uri ([string]$m.downloadUrl) -Headers $headers -OutFile $ZipPath -UseBasicParsing
+    }
+    else { throw 'No update package source.' }
+
+    if (-not [string]::IsNullOrWhiteSpace([string]$m.sha256)) {
+        if ((Hash256 $ZipPath) -ne ([string]$m.sha256).ToLowerInvariant()) { throw 'Package SHA-256 mismatch.' }
     }
 
-    Write-Log "Extraction de la mise a jour..."
     if (Get-Command Expand-Archive -ErrorAction SilentlyContinue) {
         Expand-Archive -Path $ZipPath -DestinationPath $StageDir -Force
-    } else {
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($ZipPath, $StageDir)
     }
-
-    # Le ZIP est supprime des qu'il a ete extrait.
+    else {
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [IO.Compression.ZipFile]::ExtractToDirectory($ZipPath, $StageDir)
+    }
     Remove-Item $ZipPath -Force -ErrorAction SilentlyContinue
 
-    $ApplyScript = Join-Path $TempRoot "APPLY-SENETECH-UPDATE.cmd"
-    $restartLine = ""
-    if (-not $NoRestart) {
-        $restartLine = 'start "" "' + (Join-Path $InstallDir "SENETECH-Setup.exe") + '"'
+    if (-not [string]::IsNullOrWhiteSpace([string]$m.patchUrl)) {
+        $patch = Join-Path $TempRoot 'patch.ps1'
+        Invoke-WebRequest -Uri ([string]$m.patchUrl) -Headers $headers -OutFile $patch -UseBasicParsing
+        if (-not [string]::IsNullOrWhiteSpace([string]$m.patchSha256)) {
+            if ((Hash256 $patch) -ne ([string]$m.patchSha256).ToLowerInvariant()) { throw 'Patch SHA-256 mismatch.' }
+        }
+        $pa = '-NoProfile -ExecutionPolicy Bypass -File "{0}" -StageDir "{1}"' -f $patch, $StageDir
+        $pp = Start-Process powershell.exe -ArgumentList $pa -WindowStyle Hidden -Wait -PassThru
+        if ($pp.ExitCode -ne 0) { throw "Patch failed: $($pp.ExitCode)" }
     }
 
-    $waitBlock = ""
+    $wait = ''
     if ($WaitForProcessId -gt 0) {
-        $waitBlock = @"
-:WAIT_FOR_SENETECH
+        $wait = @"
+:WAIT
 tasklist /FI "PID eq $WaitForProcessId" /NH | find "$WaitForProcessId" >nul
 if not errorlevel 1 (
-    ping 127.0.0.1 -n 2 >nul
-    goto WAIT_FOR_SENETECH
+ ping 127.0.0.1 -n 2 >nul
+ goto WAIT
 )
 "@
     }
 
-    # Ce script vit hors du dossier de mise a jour. Il nettoie ensuite tout,
-    # puis se supprime lui-meme.
-    $cleanupCmd = @"
+    $restart = ''
+    if (-not $NoRestart) { $restart = 'start "" "' + (Join-Path $InstallDir 'SENETECH-Setup.exe') + '"' }
+
+    $cleanupText = @"
 @echo off
 ping 127.0.0.1 -n 5 >nul
 rd /s /q "$TempRoot" 2>nul
 del /f /q "%~f0" >nul 2>&1
 "@
-    Set-Content -Path $CleanupScript -Value $cleanupCmd -Encoding ASCII
+    Set-Content -Path $Cleanup -Value $cleanupText -Encoding ASCII
 
-    $cmd = @"
+    $apply = Join-Path $TempRoot 'apply.cmd'
+    $applyText = @"
 @echo off
 setlocal
-$waitBlock
+$wait
 ping 127.0.0.1 -n 2 >nul
 xcopy "$StageDir\*" "$InstallDir\" /E /I /Y /Q >nul
-$restartLine
-start "" /b "$CleanupScript"
+$restart
+start "" /b "$Cleanup"
 exit /b 0
 "@
-    Set-Content -Path $ApplyScript -Value $cmd -Encoding ASCII
-
-    Write-Log "Mise a jour prete a etre appliquee."
-    Start-Process -FilePath $ApplyScript -WindowStyle Hidden
+    Set-Content -Path $apply -Value $applyText -Encoding ASCII
+    Start-Process $apply -WindowStyle Hidden
     exit 10
 }
 catch {
-    Write-Log "ERREUR: $($_.Exception.Message)"
-    try {
-        if (Test-Path $TempRoot) {
-            Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
-        }
-        if (Test-Path $CleanupScript) {
-            Remove-Item $CleanupScript -Force -ErrorAction SilentlyContinue
-        }
-    } catch {}
+    Log ('ERROR: ' + $_.Exception.Message)
+    try { if (Test-Path $TempRoot) { Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue } } catch {}
     exit 1
 }
