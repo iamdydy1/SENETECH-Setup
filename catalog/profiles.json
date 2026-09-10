@@ -3,11 +3,11 @@
   "profiles": [
     {"name":"Essentiel","apps":["Chrome","SevenZip","VLC","PDF"],"gpuHelper":false,"applyTweaks":false},
     {"name":"Bureautique","apps":["Chrome","SevenZip","VLC","PDF","LibreOffice","Zoom","Teams"],"gpuHelper":false,"applyTweaks":false},
-    {"name":"Etudiant","apps":["Chrome","Firefox","SevenZip","VLC","PDF","LibreOffice","Zoom","Teams"],"gpuHelper":false,"applyTweaks":false},
+    {"name":"Étudiant","apps":["Chrome","Firefox","SevenZip","VLC","PDF","LibreOffice","Zoom","Teams"],"gpuHelper":false,"applyTweaks":false},
     {"name":"Gaming","apps":["Chrome","SevenZip","VLC","Discord","Spotify","Steam","Epic","EA","Ubisoft","BattleNet","GOG","OBS","PowerToys","VCX64","VCX86","DirectX"],"gpuHelper":true,"applyTweaks":true,"tweakPreset":"gaming"},
-    {"name":"Createur","apps":["Chrome","SevenZip","VLC","PDF","OBS","Audacity","HandBrake","Blender","GIMP","PowerToys","VCX64","VCX86"],"gpuHelper":true,"applyTweaks":false},
-    {"name":"Developpement","apps":["Chrome","Firefox","SevenZip","VSCode","Git","NodeJS","Python","NotepadPP","PowerToys","VCX64","VCX86"],"gpuHelper":false,"applyTweaks":false},
-    {"name":"PC leger","apps":["Firefox","SevenZip","VLC","PDF"],"gpuHelper":false,"applyTweaks":true,"tweakPreset":"light"},
-    {"name":"Personnalise","apps":[],"gpuHelper":false,"applyTweaks":false}
+    {"name":"Créateur","apps":["Chrome","SevenZip","VLC","PDF","OBS","Audacity","HandBrake","Blender","GIMP","PowerToys","VCX64","VCX86"],"gpuHelper":true,"applyTweaks":false},
+    {"name":"Développement","apps":["Chrome","Firefox","SevenZip","VSCode","Git","NodeJS","Python","NotepadPP","PowerToys","VCX64","VCX86"],"gpuHelper":false,"applyTweaks":false},
+    {"name":"PC léger","apps":["Firefox","SevenZip","VLC","PDF"],"gpuHelper":false,"applyTweaks":true,"tweakPreset":"light"},
+    {"name":"Personnalisé","apps":[],"gpuHelper":false,"applyTweaks":false}
   ]
 }
