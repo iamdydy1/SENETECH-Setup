@@ -1,21 +1,20 @@
 SENETECH Setup
-Version 1.6.0.20
-Affichage : 1.6.0 DEV - build 20
+Version 1.6.0.21
+Affichage : 1.6.0 DEV - build 21
 Canal : Développeur
 Branche : develop
 Windows : 10 / 11
 Mode : Portable + Installé
 Mises à jour : GitHub + SHA-256 + rollback
+Updater : timeout PID + copie vérifiée + redémarrage contrôlé
+Journal updater : C:\ProgramData\SENETECH\Logs\SENETECH-Updater.log
+Vérification démarrage : marqueur après initialisation principale V1.6
+Sécurité : restauration automatique de l'ancienne version si l'application de la MAJ échoue
 Reporter : Cloudflare Worker + Discord côté serveur
 Interface : Assistance SENETECH + bouton Envoyer un rapport à SENETECH
 Confidentialité : autorisation explicite et modifiable avant envoi
 Rapports : erreurs, avertissements et succès importants
 Suivi : ID d'installation aléatoire + ID d'incident/événement
-Données : version SENETECH, Windows, modèle PC, étape et message technique
-Erreurs : court extrait du journal avec masquage des données sensibles
-Résilience : file d'attente locale limitée si le service est indisponible
-Correctif : changement Develop vers Stable réellement appliqué
-Sécurité : retour Stable avec backup du runtime et vérification SHA-256
 Audit : sauvegarde d'état obligatoire + SHA-256
 Audit : vérification des prérequis avant préparation
 Audit : détection des applications déjà installées
