@@ -1,8 +1,8 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.6.0.12",
-  "displayVersion": "1.6.0 DEV - build 12",
+  "version": "1.6.0.13",
+  "displayVersion": "1.6.0 DEV - build 13",
   "enabled": true,
   "mandatory": false,
   "downloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
@@ -11,7 +11,7 @@
   "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "basePackageSize": 109004,
   "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
-  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v14.ps1",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v15.ps1",
   "patchSha256": "",
   "overlayFiles": [
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Catalog.ps1","path":"_SENETECH/Modules/Senetech.Catalog.ps1"},
@@ -23,6 +23,7 @@
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.DeliveryDisplayFix.ps1","path":"_SENETECH/Modules/Senetech.DeliveryDisplayFix.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.DeliveryInventoryFix.ps1","path":"_SENETECH/Modules/Senetech.DeliveryInventoryFix.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.DeliveryRegistryFix.ps1","path":"_SENETECH/Modules/Senetech.DeliveryRegistryFix.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.FrenchUi.ps1","path":"_SENETECH/Modules/Senetech.FrenchUi.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Client/SENETECH-Welcome.ps1","path":"_SENETECH/Client/SENETECH-Welcome.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Moteur-WindowsUpdate.ps1","path":"_SENETECH/Moteur-WindowsUpdate.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/catalog/apps.json","path":"_SENETECH/Catalog/apps.json"},
@@ -38,18 +39,20 @@
     "_SENETECH/Modules/Senetech.DeliveryDisplayFix.ps1",
     "_SENETECH/Modules/Senetech.DeliveryInventoryFix.ps1",
     "_SENETECH/Modules/Senetech.DeliveryRegistryFix.ps1",
+    "_SENETECH/Modules/Senetech.FrenchUi.ps1",
     "_SENETECH/Client/SENETECH-Welcome.ps1",
     "_SENETECH/Catalog/apps.json",
     "_SENETECH/Catalog/profiles.json"
   ],
   "releaseNotes": [
-    "SENETECH V1.6.0 DEV - build 12",
-    "Build technique maintenant visible dans l interface",
-    "Mise a jour forcee pour reinjecter le correctif DisplayName sur les machines deja en 1.6.0.11",
-    "Correctif inventaire Livraison compatible avec les entrees registre sans DisplayName",
-    "Apercu applications anti-crash maintenu",
-    "Interface responsive et fenetre Livraison lisible maintenues",
-    "Correction Windows 10 App Installer/WinGet maintenue",
-    "Correction updater Portable/Installe maintenue"
+    "SENETECH V1.6.0 DEV - build 13",
+    "Révision de l'orthographe et des formulations françaises de l'interface",
+    "Accents rétablis sans réintroduire le bug d'encodage PowerShell 5.1",
+    "Profils corrigés : Étudiant, Créateur, Développement, PC léger et Personnalisé",
+    "Libellés Technicien, Démarrage Windows et Livraison/Vente corrigés",
+    "Aperçu des applications : accents, accords et ponctuation corrigés",
+    "SENETECH Welcome : textes français corrigés",
+    "Correctif DisplayName et aperçu anti-crash maintenus",
+    "Interface responsive et correction WinGet Windows 10 maintenues"
   ]
 }
