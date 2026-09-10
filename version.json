@@ -8,7 +8,7 @@
   "startupVerification": false,
   "migrationBuild": false,
   "diagnosticBuild": true,
-  "buildPin": "7337f3c6543cb97e51b81014a7d8110f30caae1e",
+  "buildPin": "bb86a0471603b3a7f38379442457d97063b6ad9f",
   "downloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "packageSize": 109004,
   "sha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
@@ -20,115 +20,30 @@
   "incrementalPatchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7337f3c6543cb97e51b81014a7d8110f30caae1e/src/PATCH-SENETECH-1.6.0-v31.ps1",
   "incrementalPatchSha256": "f5607dec5ea1a02ce7f471da98ff92b90f28e407147f31a36df907e7a30c6701",
   "overlayFiles": [
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.Catalog.ps1",
-      "path": "_SENETECH/Modules/Senetech.Catalog.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.Technician.ps1",
-      "path": "_SENETECH/Modules/Senetech.Technician.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.StartupFix.ps1",
-      "path": "_SENETECH/Modules/Senetech.StartupFix.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.Delivery.ps1",
-      "path": "_SENETECH/Modules/Senetech.Delivery.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.WinGet.ps1",
-      "path": "_SENETECH/Modules/Senetech.WinGet.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.Display.ps1",
-      "path": "_SENETECH/Modules/Senetech.Display.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.DeliveryDisplayFix.ps1",
-      "path": "_SENETECH/Modules/Senetech.DeliveryDisplayFix.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.DeliveryInventoryFix.ps1",
-      "path": "_SENETECH/Modules/Senetech.DeliveryInventoryFix.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.DeliveryRegistryFix.ps1",
-      "path": "_SENETECH/Modules/Senetech.DeliveryRegistryFix.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.FrenchUi.ps1",
-      "path": "_SENETECH/Modules/Senetech.FrenchUi.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.Validation.ps1",
-      "path": "_SENETECH/Modules/Senetech.Validation.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.ReleaseSafety.ps1",
-      "path": "_SENETECH/Modules/Senetech.ReleaseSafety.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.CacheSafety.ps1",
-      "path": "_SENETECH/Modules/Senetech.CacheSafety.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Client/SENETECH-Welcome.ps1",
-      "path": "_SENETECH/Client/SENETECH-Welcome.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Moteur-WindowsUpdate.ps1",
-      "path": "_SENETECH/Moteur-WindowsUpdate.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/catalog/apps.json",
-      "path": "_SENETECH/Catalog/apps.json"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/catalog/profiles.json",
-      "path": "_SENETECH/Catalog/profiles.json"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/04beb60182b49cd0b20ae1cfcb082d3aa3351b4a/src/UPDATE-SENETECH-V23.ps1",
-      "path": "UPDATE-SENETECH.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/04beb60182b49cd0b20ae1cfcb082d3aa3351b4a/src/UPDATE-SENETECH-CHANNEL.ps1",
-      "path": "UPDATE-SENETECH-CHANNEL.ps1"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7337f3c6543cb97e51b81014a7d8110f30caae1e/src/Tools/SENETECH-DEV-DIAGNOSTIC.ps1",
-      "path": "_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1",
-      "sha256": "32a0952c003599f308ee444da9a20f7c73172543c81fa42665ceae18741dde27"
-    },
-    {
-      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7337f3c6543cb97e51b81014a7d8110f30caae1e/SENETECH-DEV-DIAGNOSTIC.cmd",
-      "path": "SENETECH-DEV-DIAGNOSTIC.cmd",
-      "sha256": "b5715130c79b8bc645e1ab1f8bd0b94efdfbfe95f79cb6d0269375f64e82f81b"
-    }
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.Catalog.ps1","path":"_SENETECH/Modules/Senetech.Catalog.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.Technician.ps1","path":"_SENETECH/Modules/Senetech.Technician.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.StartupFix.ps1","path":"_SENETECH/Modules/Senetech.StartupFix.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.Delivery.ps1","path":"_SENETECH/Modules/Senetech.Delivery.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.WinGet.ps1","path":"_SENETECH/Modules/Senetech.WinGet.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.Display.ps1","path":"_SENETECH/Modules/Senetech.Display.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.DeliveryDisplayFix.ps1","path":"_SENETECH/Modules/Senetech.DeliveryDisplayFix.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.DeliveryInventoryFix.ps1","path":"_SENETECH/Modules/Senetech.DeliveryInventoryFix.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.DeliveryRegistryFix.ps1","path":"_SENETECH/Modules/Senetech.DeliveryRegistryFix.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.FrenchUi.ps1","path":"_SENETECH/Modules/Senetech.FrenchUi.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.Validation.ps1","path":"_SENETECH/Modules/Senetech.Validation.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.ReleaseSafety.ps1","path":"_SENETECH/Modules/Senetech.ReleaseSafety.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Modules/Senetech.CacheSafety.ps1","path":"_SENETECH/Modules/Senetech.CacheSafety.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Client/SENETECH-Welcome.ps1","path":"_SENETECH/Client/SENETECH-Welcome.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Moteur-WindowsUpdate.ps1","path":"_SENETECH/Moteur-WindowsUpdate.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/catalog/apps.json","path":"_SENETECH/Catalog/apps.json"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/catalog/profiles.json","path":"_SENETECH/Catalog/profiles.json"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/04beb60182b49cd0b20ae1cfcb082d3aa3351b4a/src/UPDATE-SENETECH-V23.ps1","path":"UPDATE-SENETECH.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/04beb60182b49cd0b20ae1cfcb082d3aa3351b4a/src/UPDATE-SENETECH-CHANNEL.ps1","path":"UPDATE-SENETECH-CHANNEL.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/bb86a0471603b3a7f38379442457d97063b6ad9f/src/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","path":"_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","sha256":"efdcb472fad8b3a50b186cb576b353fa957884ebacf13726fe481be68f277e58"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/bb86a0471603b3a7f38379442457d97063b6ad9f/SENETECH-DEV-DIAGNOSTIC.cmd","path":"SENETECH-DEV-DIAGNOSTIC.cmd","sha256":"b5715130c79b8bc645e1ab1f8bd0b94efdfbfe95f79cb6d0269375f64e82f81b"}
   ],
   "requiredFiles": [
-    "_SENETECH/Modules/Senetech.Catalog.ps1",
-    "_SENETECH/Modules/Senetech.Technician.ps1",
-    "_SENETECH/Modules/Senetech.StartupFix.ps1",
-    "_SENETECH/Modules/Senetech.Delivery.ps1",
-    "_SENETECH/Modules/Senetech.WinGet.ps1",
-    "_SENETECH/Modules/Senetech.Display.ps1",
-    "_SENETECH/Modules/Senetech.DeliveryDisplayFix.ps1",
-    "_SENETECH/Modules/Senetech.DeliveryInventoryFix.ps1",
-    "_SENETECH/Modules/Senetech.DeliveryRegistryFix.ps1",
-    "_SENETECH/Modules/Senetech.FrenchUi.ps1",
-    "_SENETECH/Modules/Senetech.Validation.ps1",
-    "_SENETECH/Modules/Senetech.ReleaseSafety.ps1",
-    "_SENETECH/Modules/Senetech.CacheSafety.ps1",
-    "_SENETECH/Client/SENETECH-Welcome.ps1",
-    "_SENETECH/Moteur-WindowsUpdate.ps1",
-    "_SENETECH/Catalog/apps.json",
-    "_SENETECH/Catalog/profiles.json",
-    "UPDATE-SENETECH.ps1",
-    "UPDATE-SENETECH-CHANNEL.ps1",
-    "_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1",
-    "SENETECH-DEV-DIAGNOSTIC.cmd"
+    "_SENETECH/Modules/Senetech.Catalog.ps1","_SENETECH/Modules/Senetech.Technician.ps1","_SENETECH/Modules/Senetech.StartupFix.ps1","_SENETECH/Modules/Senetech.Delivery.ps1","_SENETECH/Modules/Senetech.WinGet.ps1","_SENETECH/Modules/Senetech.Display.ps1","_SENETECH/Modules/Senetech.DeliveryDisplayFix.ps1","_SENETECH/Modules/Senetech.DeliveryInventoryFix.ps1","_SENETECH/Modules/Senetech.DeliveryRegistryFix.ps1","_SENETECH/Modules/Senetech.FrenchUi.ps1","_SENETECH/Modules/Senetech.Validation.ps1","_SENETECH/Modules/Senetech.ReleaseSafety.ps1","_SENETECH/Modules/Senetech.CacheSafety.ps1","_SENETECH/Client/SENETECH-Welcome.ps1","_SENETECH/Moteur-WindowsUpdate.ps1","_SENETECH/Catalog/apps.json","_SENETECH/Catalog/profiles.json","UPDATE-SENETECH.ps1","UPDATE-SENETECH-CHANNEL.ps1","_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","SENETECH-DEV-DIAGNOSTIC.cmd"
   ],
   "releaseNotes": [
     "SENETECH V1.6.0 DEV - build 26 DIAGNOSTIC",
