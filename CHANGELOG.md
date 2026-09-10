@@ -1,5 +1,22 @@
 # Changelog SENETECH Setup — Develop
 
+## V1.6.0.13 DEV — 2026-09-10
+
+- Révision générale de l'orthographe, des accents, des accords et de la ponctuation dans les nouveaux écrans V1.6.
+- Correction des libellés des outils Technicien, du gestionnaire de démarrage et de l'assistant Livraison/Vente.
+- Les profils affichent désormais correctement **Étudiant**, **Créateur**, **Développement**, **PC léger** et **Personnalisé**.
+- Les catégories du catalogue utilisent désormais **Multimédia**, **Création** et **Développement**.
+- Les textes français de **SENETECH Welcome** ont également été corrigés.
+- Les scripts PowerShell concernés restent compatibles avec Windows PowerShell 5.1 : les caractères accentués de l'interface sont générés à l'exécution afin d'éviter le retour du problème d'encodage.
+- Les correctifs DisplayName, anti-crash de l'aperçu, responsive et WinGet restent actifs.
+- La Stable V1.5.1 reste inchangée.
+
+## V1.6.0.12 DEV — 2026-09-10
+
+- Nouvelle build technique forcée afin de réinjecter le correctif d'inventaire sur les machines déclarant déjà la build 11.
+- Le numéro de build technique est désormais visible dans l'interface : **1.6.0 DEV - build 12**.
+- Aucun changement n'a été apporté à la Stable V1.5.1.
+
 ## V1.6.0.11 DEV — 2026-09-10
 
 - Correction de l'erreur **« La propriété DisplayName est introuvable dans cet objet »** lors de l'ouverture de **Voir les applications détectées**.
