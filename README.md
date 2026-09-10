@@ -1,51 +1,42 @@
 # SENETECH Setup
 
-**Base Stable officielle : V1.5.1**  
-Windows 10 / 11 • Portable + Installé • Mises à jour GitHub
+**Version Stable officielle : V1.5.1**  
+Windows 10 / 11 • Portable + Installé • Mises à jour intégrées
 
-## Pour les utilisateurs
+## Télécharger SENETECH
 
-Ne téléchargez pas les fichiers du dépôt un par un et ne récupérez pas `SENETECH-Setup.exe` isolément.
+**[Télécharger SENETECH Setup V1.5.1 Stable](https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/dist/SENETECH-Setup-V1.5.1-STABLE.zip)**
 
-Deux méthodes sont prévues :
+Aucun compte GitHub, Git ou logiciel supplémentaire n'est nécessaire. Téléchargez le ZIP, extrayez-le entièrement puis lancez `SENETECH-Setup.exe`.
 
-1. **ZIP officiel SENETECH V1.5.1 FULL** : extraire entièrement le ZIP puis lancer `SENETECH-Setup.exe`.
-2. **`SENETECH-Download.cmd`** : télécharge automatiquement la version Stable dans `Téléchargements\SENETECH-Setup`, vérifie le package puis lance SENETECH.
+Une alternative automatisée est disponible avec `SENETECH-Download.cmd` : elle récupère la dernière Stable, contrôle son SHA-256 et lance SENETECH.
 
-**Aucun compte GitHub n'est nécessaire.** Le dépôt est public et SENETECH utilise GitHub uniquement comme serveur de versions et de mises à jour.
+## Fonctionnement
 
-## Base Stable
+SENETECH est une seule application avec deux modes :
 
-- Version : **1.5.1.0**
-- Canal : **Stable**
-- Branche : **`main`**
-- Déploiement : **Portable + Installé**
-- Mise à jour : activée
-- Windows : **10 / 11**
+- **Portable** : fonctionne depuis un dossier ou une clé USB.
+- **Installé** : peut être installé sur Windows avec raccourcis et désinstallation.
 
-`version.json` est la source officielle utilisée par SENETECH pour connaître la version Stable disponible.
+Le logiciel dispose également de deux canaux de mise à jour :
 
-## Portable ou Installé
+- **Stable (`main`)** : canal par défaut, destiné aux clients.
+- **Développeur (`develop`)** : canal de test pour les prochaines fonctions.
 
-**Portable** : SENETECH fonctionne depuis un dossier ou une clé USB sans installation permanente.
+Le canal se choisit depuis **Paramètres** dans SENETECH. Les nouvelles installations démarrent toujours en Stable.
 
-**Installé** : le même SENETECH peut être installé sur le PC avec ses raccourcis et sa désinstallation.
+## Mise à jour automatique
 
-Il s'agit d'une seule application : le mode de déploiement ne change pas le système de mise à jour.
+SENETECH lit le `version.json` du canal sélectionné. Lorsqu'une version plus récente est disponible, il télécharge le package complet, vérifie son SHA-256, ferme l'application, remplace les fichiers, redémarre SENETECH puis nettoie les fichiers temporaires.
 
-## Stable ou Développeur
+## Intégrité V1.5.1
 
-- **Stable — `main`** : canal recommandé pour les clients et les PC vendus.
-- **Développeur — `develop`** : canal utilisé pour tester les prochaines modifications avant leur validation.
+- Package : `dist/SENETECH-Setup-V1.5.1-STABLE.zip`
+- Taille : `109004` octets
+- SHA-256 : `81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a`
 
-Depuis V1.5.1, le canal peut être choisi dans **Paramètres**. Une nouvelle installation destinée à un client démarre toujours en Stable.
+## Développement
 
-## Mises à jour
+`main` reste la base Stable. Les prochaines modifications sont réalisées sur `develop`, testées, puis promues sur `main` uniquement après validation.
 
-SENETECH vérifie le `version.json` du canal sélectionné. Lorsqu'une version plus récente existe, il la propose, télécharge les fichiers nécessaires, vérifie le package, ferme l'application, applique la mise à jour, redémarre SENETECH puis nettoie ses fichiers temporaires.
-
-## Règle de développement
-
-**V1.5.1 est notre base Stable.** Toutes les nouvelles modifications sont réalisées sur `develop`. Elles ne passent sur `main` qu'après test et validation.
-
-Ne jamais publier de mot de passe, token GitHub ou clé privée dans ce dépôt public.
+Ne publiez jamais de mot de passe, token GitHub ou clé privée dans ce dépôt public.

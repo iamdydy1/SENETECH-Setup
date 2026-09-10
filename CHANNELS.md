@@ -1,10 +1,18 @@
 # Canaux SENETECH
 
-SENETECH utilise un seul dépôt GitHub et deux canaux de mise à jour.
+## Stable — `main`
 
-- `main` : canal **Stable**, recommandé et utilisé par défaut pour les clients.
-- `develop` : canal **Développeur**, destiné aux tests avant publication stable.
+Canal par défaut pour les clients et les PC vendus. Il ne contient que les versions validées.
 
-À partir de SENETECH V1.5.1, le canal peut être choisi depuis le bouton **Paramètres** de l'application.
+Version actuelle : **1.5.1.0**.
 
-Le mode de déploiement (Portable ou Installé) est indépendant du canal de mise à jour.
+## Développeur — `develop`
+
+Canal de test pour les prochaines fonctions. Il repart de la Stable et peut recevoir des versions non encore validées.
+
+## Règles
+
+- Une nouvelle installation démarre toujours sur **Stable**.
+- Le choix Stable / Développeur est mémorisé par SENETECH.
+- Portable / Installé est indépendant du canal.
+- Une version Develop n'est promue sur `main` qu'après test et validation.

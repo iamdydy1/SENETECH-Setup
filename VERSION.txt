@@ -2,6 +2,6 @@ SENETECH Setup
 Version 1.5.1.0
 Canal : Stable
 Branche : main
-Architecture : Windows 10 / 11
+Windows : 10 / 11
 Mode : Portable + Installe
-Developpement : branche develop
+Mises a jour : GitHub + SHA-256
