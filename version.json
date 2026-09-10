@@ -1,8 +1,8 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.6.0.16",
-  "displayVersion": "1.6.0 DEV - build 16",
+  "version": "1.6.0.17",
+  "displayVersion": "1.6.0 DEV - build 17",
   "enabled": true,
   "mandatory": false,
   "downloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
@@ -11,7 +11,7 @@
   "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "basePackageSize": 109004,
   "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
-  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v18.ps1",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v19.ps1",
   "patchSha256": "",
   "overlayFiles": [
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Catalog.ps1","path":"_SENETECH/Modules/Senetech.Catalog.ps1"},
@@ -51,20 +51,14 @@
     "_SENETECH/Catalog/profiles.json"
   ],
   "releaseNotes": [
-    "SENETECH V1.6.0 DEV - build 16",
-    "Grande vérification de sécurité avant future promotion Stable",
-    "Sauvegarde d'état obligatoire et contrôle final de la build 14 conservés",
-    "Rollback renforcé : sauvegarde précédente vérifiée et copie de sécurité de la version actuelle avant restauration",
-    "Si un rollback échoue, SENETECH tente de restaurer automatiquement le runtime courant",
-    "Cache USB transactionnel : l'ancien cache reste intact jusqu'à validation complète du nouveau",
-    "SENETECH Setup est protégé contre une désinstallation pendant le mode PC propre",
-    "Le runtime technicien installé est supprimé après validation OOBE par la tâche SYSTEM",
-    "Les sauvegardes et validations technicien sont effacées lors de la finalisation vente",
-    "Mode PC configuré : les applications préparées sont enregistrées puis revérifiées sur le nouveau profil client",
-    "SENETECH Welcome vérifie les applications déjà présentes, installe seulement les manquantes et contrôle chaque installation",
-    "SENETECH Welcome retrouve/réenregistre WinGet quand l'alias n'est pas disponible",
-    "Les installations client en échec ne sont plus déclarées comme réussies et peuvent être réessayées",
-    "Correctif critique FrenchUi build 15 maintenu",
+    "SENETECH V1.6.0 DEV - build 17",
+    "Correctif critique de mise en forme des chaînes françaises sous Windows PowerShell 5.1",
+    "Les marqueurs d'accents ne peuvent plus entrer en conflit avec l'opérateur -f",
+    "FrenchUi et Validation sont normalisés avant chargement",
+    "Les chaînes déjà injectées dans le moteur sont également corrigées",
+    "Grande vérification de sécurité de la build 16 conservée",
+    "Sauvegarde d'état obligatoire et contrôle final conservés",
+    "Rollback sécurisé, cache transactionnel et livraison client renforcée conservés",
     "Stable V1.5.1 inchangée"
   ]
 }
