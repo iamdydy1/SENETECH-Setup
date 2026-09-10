@@ -1,7 +1,7 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.6.0.6",
+  "version": "1.6.0.7",
   "displayVersion": "1.6.0 DEV",
   "enabled": true,
   "mandatory": false,
@@ -11,7 +11,7 @@
   "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "basePackageSize": 109004,
   "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
-  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v8.ps1",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v9.ps1",
   "patchSha256": "",
   "overlayFiles": [
     {
@@ -62,19 +62,16 @@
     "_SENETECH/Catalog/profiles.json"
   ],
   "releaseNotes": [
-    "SENETECH V1.6.0 DEV - build 6",
-    "Windows 10/11 neuf : installation ou reparation automatique de WinGet si absent",
-    "Bootstrap officiel via Microsoft.WinGet.Client et Repair-WinGetPackageManager",
-    "Detection de winget.exe meme si l alias WindowsApps n est pas encore disponible",
-    "L installation des applications reprend automatiquement avec WinGet apres bootstrap",
-    "La mise a jour des applications utilise aussi le bootstrap WinGet",
-    "Correction de la regression updater introduite en build 4 maintenue",
-    "Mode Installe : mecanisme de relance precedent conserve",
-    "Mode Portable : relance separee depuis le dossier propre de SENETECH",
+    "SENETECH V1.6.0 DEV - build 7",
+    "Correction Windows 10 : App Installer deja present mais winget.exe non resolu",
+    "SENETECH recherche maintenant winget.exe directement dans le package App Installer installe",
+    "Si necessaire, reenregistrement du AppxManifest existant au lieu de tenter une retrogradation",
+    "La version App Installer deja plus recente est conservee",
+    "Bootstrap Microsoft utilise seulement si WinGet est reellement absent",
+    "Correction updater Portable/Installe de build 5 maintenue",
     "Mode Livraison / Vente avec PC propre ou configuration client conservee",
     "Suppression differee du profil technicien et preparation OOBE",
     "SENETECH Welcome au premier profil client",
-    "Correctif des caracteres de la fenetre Demarrage Windows",
     "Catalogue applications et profils dynamique",
     "Windows Update avance, diagnostics enrichis, historique et rollback"
   ]
