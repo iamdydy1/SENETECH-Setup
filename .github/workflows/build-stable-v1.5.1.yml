@@ -1,0 +1,121 @@
+name: Build SENETECH V1.5.1 Stable
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-stable-v1.5.1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-stable:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build and verify full Stable package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $stage = Join-Path $env:RUNNER_TEMP 'senetech-stage'
+          $verify = Join-Path $env:RUNNER_TEMP 'senetech-verify'
+          $baseZip = Join-Path $env:RUNNER_TEMP 'senetech-base.zip'
+          Remove-Item $stage,$verify -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item $baseZip -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+
+          $parts = Get-ChildItem 'packages/v1.4.2/part*.b64' | Sort-Object Name
+          if ($parts.Count -ne 8) { throw "Expected 8 base package parts, found $($parts.Count)." }
+          $builder = New-Object System.Text.StringBuilder
+          foreach ($part in $parts) {
+            [void]$builder.Append(((Get-Content $part.FullName -Raw) -replace '\s',''))
+          }
+          [IO.File]::WriteAllBytes($baseZip,[Convert]::FromBase64String($builder.ToString()))
+
+          $baseHash = (Get-FileHash $baseZip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($baseHash -ne 'f36f81c05f6eb529a3e27095c79683652e957176e3fe4f6ae6e663a1570641b4') {
+            throw "Base package SHA-256 mismatch: $baseHash"
+          }
+
+          Expand-Archive -Path $baseZip -DestinationPath $stage -Force
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File 'packages/v1.5.1/PATCH-SENETECH-1.5.1.ps1' -StageDir $stage
+          if ($LASTEXITCODE -ne 0) { throw "V1.5.1 patch failed: $LASTEXITCODE" }
+
+          $required = @(
+            'SENETECH-Setup.exe',
+            '_SENETECH\SENETECH-Setup.ps1',
+            '_SENETECH\SENETECH-Setup.manifest',
+            '_SENETECH\Mode-Secours.cmd',
+            '_SENETECH\Moteur-WindowsUpdate.ps1',
+            '_SENETECH\Assets\SENETECH-Icon.png',
+            '_SENETECH\Assets\SENETECH-Logo.png',
+            'VERSION.txt','LISEZ-MOI.txt','CHANGELOG.txt'
+          )
+          foreach ($rel in $required) {
+            if (-not (Test-Path (Join-Path $stage $rel))) { throw "Missing runtime file: $rel" }
+          }
+
+          $engineText = Get-Content (Join-Path $stage '_SENETECH\SENETECH-Setup.ps1') -Raw
+          foreach ($needle in @("AppVersion = '1.5.1.0'",'Show-SenetechSettings','Install-SenetechOnThisPc','Set-SenetechUpdateEndpoints')) {
+            if ($engineText -notmatch [regex]::Escape($needle)) { throw "Runtime validation failed: $needle" }
+          }
+
+          Get-ChildItem $stage -Recurse -File | Where-Object { $_.Name -match '\.(bak|tmp)$' } | Remove-Item -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path 'dist' -Force | Out-Null
+          $distZip = 'dist/SENETECH-Setup-V1.5.1-STABLE.zip'
+          Remove-Item $distZip -Force -ErrorAction SilentlyContinue
+          Compress-Archive -Path "$stage\*" -DestinationPath $distZip -CompressionLevel Optimal
+
+          $size = (Get-Item $distZip).Length
+          if ($size -lt 80000) { throw "Stable ZIP is unexpectedly small: $size bytes" }
+
+          Expand-Archive -Path $distZip -DestinationPath $verify -Force
+          foreach ($rel in $required) {
+            if (-not (Test-Path (Join-Path $verify $rel))) { throw "ZIP verification failed: $rel" }
+          }
+          $verifiedEngine = Get-Content (Join-Path $verify '_SENETECH\SENETECH-Setup.ps1') -Raw
+          if ($verifiedEngine -notmatch "AppVersion = '1\.5\.1\.0'") { throw 'ZIP engine version validation failed.' }
+
+          $hash = (Get-FileHash $distZip -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content -Path 'dist/SENETECH-Setup-V1.5.1-STABLE.sha256' -Value $hash -Encoding ascii
+
+          $manifest = [ordered]@{
+            product = 'SENETECH Setup'
+            channel = 'stable'
+            version = '1.5.1.0'
+            displayVersion = '1.5.1'
+            enabled = $true
+            mandatory = $false
+            downloadUrl = 'https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/dist/SENETECH-Setup-V1.5.1-STABLE.zip'
+            packageSize = $size
+            sha256 = $hash
+            patchUrl = ''
+            patchSize = 0
+            patchSha256 = ''
+            releaseNotes = @(
+              'SENETECH Setup V1.5.1 - base Stable officielle',
+              'Package complet avec SENETECH-Setup.exe, moteur et assets',
+              'Modes Portable et Installe dans une seule application',
+              'Canal Stable par defaut sur main',
+              'Canal Developpeur disponible depuis Parametres',
+              'Verification SHA-256 du package complet'
+            )
+          }
+          $manifest | ConvertTo-Json -Depth 5 | Set-Content -Path 'version.json' -Encoding utf8
+          Write-Host "Stable package: $size bytes | SHA-256 $hash"
+
+      - name: Commit verified Stable package
+        shell: pwsh
+        run: |
+          git config user.name 'SENETECH Build Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add dist/SENETECH-Setup-V1.5.1-STABLE.zip dist/SENETECH-Setup-V1.5.1-STABLE.sha256 version.json
+          if (git diff --cached --quiet) { exit 0 }
+          git commit -m 'release: publish verified V1.5.1 stable package [skip ci]'
+          git push origin main
