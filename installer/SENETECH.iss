@@ -79,4 +79,4 @@ Name: "{group}\SENETECH Setup"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{a
 Name: "{autodesktop}\SENETECH Setup"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Description: "Lancer SENETECH Setup"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExeName}"; Description: "Lancer SENETECH Setup"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent runascurrentuser
