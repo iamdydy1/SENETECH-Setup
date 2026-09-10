@@ -10,22 +10,34 @@ $ErrorActionPreference = 'Stop'
 $UpdateChannel = if (([string]$UpdateChannel).ToLowerInvariant() -eq 'develop') { 'develop' } else { 'stable' }
 $UpdateBranch = if ($UpdateChannel -eq 'develop') { 'develop' } else { 'main' }
 $ManifestUrl = "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/$UpdateBranch/version.json"
+
 $TempRoot = Join-Path $env:TEMP 'SENETECH-Update'
 $ZipPath = Join-Path $TempRoot 'SENETECH-package.zip'
 $StageDir = Join-Path $TempRoot 'stage'
 $BackupDir = Join-Path $TempRoot 'backup'
-$LogPath = Join-Path $env:TEMP 'SENETECH-Update.log'
-$CleanupScript = Join-Path $env:TEMP 'SENETECH-Cleanup.cmd'
+$ApplyScript = Join-Path $env:TEMP 'SENETECH-ApplyUpdate.ps1'
+$TempLogPath = Join-Path $env:TEMP 'SENETECH-Update.log'
+$PersistentLogDir = Join-Path $env:ProgramData 'SENETECH\Logs'
+$PersistentLogPath = Join-Path $PersistentLogDir 'SENETECH-Updater.log'
+$StartupMarkerPath = Join-Path $env:ProgramData 'SENETECH\startup.ok'
+
+function Initialize-UpdateLog {
+    try { New-Item -ItemType Directory -Path $PersistentLogDir -Force | Out-Null } catch { }
+}
 
 function Write-UpdateLog([string]$Text) {
     $line = '[{0}] [{1}] {2}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $UpdateChannel.ToUpperInvariant(), $Text
-    try {
-        if (Test-Path $LogPath) {
-            $info = Get-Item $LogPath -ErrorAction SilentlyContinue
-            if ($info -and $info.Length -gt 1MB) { Remove-Item $LogPath -Force -ErrorAction SilentlyContinue }
-        }
-        Add-Content -Path $LogPath -Value $line -Encoding UTF8
-    } catch { }
+    foreach ($path in @($PersistentLogPath,$TempLogPath)) {
+        try {
+            $parent = Split-Path -Parent $path
+            if ($parent) { New-Item -ItemType Directory -Path $parent -Force -ErrorAction SilentlyContinue | Out-Null }
+            if (Test-Path -LiteralPath $path) {
+                $info = Get-Item -LiteralPath $path -ErrorAction SilentlyContinue
+                if ($info -and $info.Length -gt 2MB) { Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue }
+            }
+            Add-Content -LiteralPath $path -Value $line -Encoding UTF8
+        } catch { }
+    }
 }
 
 function Get-Sha256([string]$Path) {
@@ -45,7 +57,7 @@ function Assert-Https([string]$Url, [string]$Label) {
 
 function Copy-SenetechRuntime([string]$Source, [string]$Destination) {
     New-Item -ItemType Directory -Force -Path $Destination | Out-Null
-    foreach ($name in @('SENETECH-Setup.exe','VERSION.txt','LISEZ-MOI.txt','CHANGELOG.txt')) {
+    foreach ($name in @('SENETECH-Setup.exe','VERSION.txt','LISEZ-MOI.txt','CHANGELOG.txt','UPDATE-SENETECH.ps1','UPDATE-SENETECH-CHANNEL.ps1')) {
         $src = Join-Path $Source $name
         if (Test-Path -LiteralPath $src) { Copy-Item -LiteralPath $src -Destination (Join-Path $Destination $name) -Force }
     }
@@ -67,9 +79,18 @@ function Get-SafeStagePath([string]$RelativePath) {
     return $candidate
 }
 
+function Quote-PsLiteral([string]$Value) {
+    if ($null -eq $Value) { return "''" }
+    return "'" + $Value.Replace("'","''") + "'"
+}
+
+Initialize-UpdateLog
+Write-UpdateLog "Updater start. Current=$CurrentVersion InstallDir=$InstallDir PID=$WaitForProcessId"
+
 try {
     try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch { }
     $headers = @{ 'User-Agent' = "SENETECH-Setup/$CurrentVersion" }
+
     Write-UpdateLog "Checking $ManifestUrl"
     $manifest = Invoke-RestMethod -Uri $ManifestUrl -Headers $headers -UseBasicParsing
     if (-not $manifest.enabled) { Write-UpdateLog 'Update service disabled.'; exit 0 }
@@ -85,22 +106,28 @@ try {
     if ([string]::IsNullOrWhiteSpace($baseHash)) { throw 'SHA-256 du package absent.' }
 
     Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item $CleanupScript -Force -ErrorAction SilentlyContinue
+    Remove-Item $ApplyScript -Force -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Path $StageDir,$BackupDir -Force | Out-Null
 
     Write-UpdateLog "Downloading base package for SENETECH $($manifest.version)"
     Invoke-WebRequest -Uri $baseUrl -Headers $headers -OutFile $ZipPath -UseBasicParsing
+
     if ($baseSize -gt 0) {
         $actualSize = (Get-Item -LiteralPath $ZipPath).Length
         if ($actualSize -ne $baseSize) { throw "Package size mismatch: $actualSize bytes" }
         Write-UpdateLog "Base package size OK: $actualSize bytes."
     }
+
     $actualHash = Get-Sha256 $ZipPath
     if ($actualHash -ne $baseHash.ToLowerInvariant()) { throw "Package SHA-256 mismatch: $actualHash" }
     Write-UpdateLog 'Base package SHA-256 verification OK.'
 
-    if (Get-Command Expand-Archive -ErrorAction SilentlyContinue) { Expand-Archive -Path $ZipPath -DestinationPath $StageDir -Force }
-    else { Add-Type -AssemblyName System.IO.Compression.FileSystem; [IO.Compression.ZipFile]::ExtractToDirectory($ZipPath, $StageDir) }
+    if (Get-Command Expand-Archive -ErrorAction SilentlyContinue) {
+        Expand-Archive -Path $ZipPath -DestinationPath $StageDir -Force
+    } else {
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [IO.Compression.ZipFile]::ExtractToDirectory($ZipPath, $StageDir)
+    }
     Remove-Item $ZipPath -Force -ErrorAction SilentlyContinue
 
     if ($manifest.PSObject.Properties.Name -contains 'patchUrl' -and $manifest.patchUrl) {
@@ -134,82 +161,227 @@ try {
     }
 
     $required = @('SENETECH-Setup.exe','_SENETECH\SENETECH-Setup.ps1','_SENETECH\SENETECH-Setup.manifest')
-    if ($manifest.PSObject.Properties.Name -contains 'requiredFiles' -and $manifest.requiredFiles) { $required += @($manifest.requiredFiles | ForEach-Object { [string]$_ }) }
-    foreach ($relative in ($required | Select-Object -Unique)) {
-        if (-not (Test-Path -LiteralPath (Join-Path $StageDir $relative))) { throw "Incomplete SENETECH package: missing $relative" }
+    if ($manifest.PSObject.Properties.Name -contains 'requiredFiles' -and $manifest.requiredFiles) {
+        $required += @($manifest.requiredFiles | ForEach-Object { [string]$_ })
     }
+    foreach ($relative in ($required | Select-Object -Unique)) {
+        if (-not (Test-Path -LiteralPath (Join-Path $StageDir $relative))) {
+            throw "Incomplete SENETECH package: missing $relative"
+        }
+    }
+    Write-UpdateLog 'Staged package validation OK.'
 
     if (Test-Path -LiteralPath $InstallDir) {
         Copy-SenetechRuntime -Source $InstallDir -Destination $BackupDir
+        if (-not (Test-Path -LiteralPath (Join-Path $BackupDir 'SENETECH-Setup.exe'))) {
+            throw 'Backup validation failed: SENETECH-Setup.exe missing.'
+        }
         Write-UpdateLog "Current runtime backed up from $InstallDir"
     }
 
-    $waitBlock = ''
-    if ($WaitForProcessId -gt 0) {
-        $waitBlock = @"
-:WAIT_FOR_SENETECH
-tasklist /FI "PID eq $WaitForProcessId" /NH | find "$WaitForProcessId" >nul
-if not errorlevel 1 (
-  ping 127.0.0.1 -n 2 >nul
-  goto WAIT_FOR_SENETECH
-)
-"@
+    $startupVerification = $false
+    if ($manifest.PSObject.Properties.Name -contains 'startupVerification') {
+        $startupVerification = [bool]$manifest.startupVerification
     }
 
-    $restartLine = ''
-    if (-not $NoRestart) {
-        $exePath = Join-Path $InstallDir 'SENETECH-Setup.exe'
-        $programFilesRoot = [IO.Path]::GetFullPath($env:ProgramFiles).TrimEnd('\') + '\'
-        $installFull = [IO.Path]::GetFullPath($InstallDir).TrimEnd('\') + '\'
-        $isInstalledTarget = $installFull.StartsWith($programFilesRoot,[StringComparison]::OrdinalIgnoreCase)
-        if ($isInstalledTarget) {
-            # Keep the original, previously validated installed-mode relaunch behavior.
-            $restartLine = 'start "" "' + $exePath + '"'
-            Write-UpdateLog 'Restart mode: installed/original.'
-        } else {
-            # Portable mode: launch from its own working directory so relative runtime files resolve correctly.
-            $restartLine = 'start "" /D "' + $InstallDir + '" "' + $exePath + '"'
-            Write-UpdateLog 'Restart mode: portable with explicit working directory.'
+    $qInstall = Quote-PsLiteral $InstallDir
+    $qStage = Quote-PsLiteral $StageDir
+    $qBackup = Quote-PsLiteral $BackupDir
+    $qPersistent = Quote-PsLiteral $PersistentLogPath
+    $qTempLog = Quote-PsLiteral $TempLogPath
+    $qMarker = Quote-PsLiteral $StartupMarkerPath
+    $qRemote = Quote-PsLiteral ([string]$manifest.version)
+    $qCurrent = Quote-PsLiteral $CurrentVersion
+    $qChannel = Quote-PsLiteral $UpdateChannel
+    $qTempRoot = Quote-PsLiteral $TempRoot
+    $pidValue = [int]$WaitForProcessId
+    $noRestartValue = if ($NoRestart) { '$true' } else { '$false' }
+    $verifyValue = if ($startupVerification) { '$true' } else { '$false' }
+
+    $applyText = @"
+`$ErrorActionPreference = 'Stop'
+`$InstallDir = $qInstall
+`$StageDir = $qStage
+`$BackupDir = $qBackup
+`$PersistentLogPath = $qPersistent
+`$TempLogPath = $qTempLog
+`$StartupMarkerPath = $qMarker
+`$RemoteVersion = $qRemote
+`$CurrentVersion = $qCurrent
+`$Channel = $qChannel
+`$TempRoot = $qTempRoot
+`$WaitForProcessId = $pidValue
+`$NoRestart = $noRestartValue
+`$StartupVerification = $verifyValue
+
+function Log([string]`$Text) {
+    `$line = '[{0}] [{1}] APPLY {2}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), `$Channel.ToUpperInvariant(), `$Text
+    foreach (`$path in @(`$PersistentLogPath,`$TempLogPath)) {
+        try {
+            `$parent = Split-Path -Parent `$path
+            if (`$parent) { New-Item -ItemType Directory -Path `$parent -Force -ErrorAction SilentlyContinue | Out-Null }
+            Add-Content -LiteralPath `$path -Value `$line -Encoding UTF8
+        } catch { }
+    }
+}
+
+function Copy-Tree([string]`$Source,[string]`$Destination) {
+    if (-not (Test-Path -LiteralPath `$Source)) { throw "Source missing: `$Source" }
+    New-Item -ItemType Directory -Path `$Destination -Force | Out-Null
+    if (Get-Command robocopy.exe -ErrorAction SilentlyContinue) {
+        & robocopy.exe `$Source `$Destination /E /R:2 /W:1 /COPY:DAT /DCOPY:DAT /NFL /NDL /NJH /NJS /NP | Out-Null
+        `$code = `$LASTEXITCODE
+        if (`$code -gt 7) { throw "Robocopy failed with code `$code" }
+    } else {
+        Copy-Item -Path (Join-Path `$Source '*') -Destination `$Destination -Recurse -Force -ErrorAction Stop
+    }
+}
+
+function Restart-Runtime([string]`$Directory) {
+    `$exe = Join-Path `$Directory 'SENETECH-Setup.exe'
+    if (-not (Test-Path -LiteralPath `$exe)) { throw "Executable missing: `$exe" }
+    return Start-Process -FilePath `$exe -WorkingDirectory `$Directory -PassThru
+}
+
+function Restore-PreviousRuntime {
+    Log 'Rollback started.'
+    if (-not (Test-Path -LiteralPath (Join-Path `$BackupDir 'SENETECH-Setup.exe'))) {
+        throw 'Rollback backup is incomplete.'
+    }
+    Copy-Tree `$BackupDir `$InstallDir
+    Log 'Rollback copy completed.'
+    if (-not `$NoRestart) {
+        try {
+            `$old = Restart-Runtime `$InstallDir
+            Log ("Previous runtime relaunched. PID=" + `$old.Id)
+        } catch {
+            Log ("Previous runtime relaunch failed: " + `$_.Exception.Message)
+        }
+    }
+}
+
+try {
+    Log ("Apply start. Current=" + `$CurrentVersion + " Remote=" + `$RemoteVersion + " PID=" + `$WaitForProcessId)
+
+    if (`$WaitForProcessId -gt 0) {
+        `$deadline = (Get-Date).AddSeconds(15)
+        while (Get-Process -Id `$WaitForProcessId -ErrorAction SilentlyContinue) {
+            if ((Get-Date) -ge `$deadline) {
+                Log ("Host PID still alive after timeout; forcing stop: " + `$WaitForProcessId)
+                Stop-Process -Id `$WaitForProcessId -Force -ErrorAction SilentlyContinue
+                Start-Sleep -Seconds 2
+                break
+            }
+            Start-Sleep -Milliseconds 500
+        }
+        if (Get-Process -Id `$WaitForProcessId -ErrorAction SilentlyContinue) {
+            throw "Unable to stop previous SENETECH process PID `$WaitForProcessId"
+        }
+        Log 'Previous SENETECH process is stopped.'
+    }
+
+    `$rollbackDir = Join-Path `$InstallDir '_SENETECH\Rollback\previous'
+    if (Test-Path -LiteralPath `$BackupDir) {
+        if (Test-Path -LiteralPath `$rollbackDir) { Remove-Item -LiteralPath `$rollbackDir -Recurse -Force -ErrorAction SilentlyContinue }
+        Copy-Tree `$BackupDir `$rollbackDir
+        `$meta = @{ fromVersion=`$CurrentVersion; replacedBy=`$RemoteVersion; date=(Get-Date).ToString('o') } | ConvertTo-Json -Compress
+        Set-Content -LiteralPath (Join-Path `$rollbackDir 'rollback.json') -Value `$meta -Encoding UTF8
+        Log 'Rollback snapshot stored.'
+    }
+
+    Copy-Tree `$StageDir `$InstallDir
+    Log 'New runtime copied.'
+
+    foreach (`$required in @('SENETECH-Setup.exe','_SENETECH\SENETECH-Setup.ps1','_SENETECH\SENETECH-Setup.manifest')) {
+        if (-not (Test-Path -LiteralPath (Join-Path `$InstallDir `$required))) {
+            throw "Post-copy validation failed: missing `$required"
         }
     }
 
-    $rollbackDir = Join-Path $InstallDir '_SENETECH\Rollback\previous'
-    $rollbackMeta = Join-Path $rollbackDir 'rollback.json'
-    $escapedCurrent = $CurrentVersion.Replace('"','')
-    $escapedRemote = ([string]$manifest.version).Replace('"','')
-    $cleanupText = @"
-@echo off
-ping 127.0.0.1 -n 5 >nul
-rd /s /q "$TempRoot" 2>nul
-del /f /q "%~f0" >nul 2>&1
+    `$versionFile = Join-Path `$InstallDir 'VERSION.txt'
+    if (Test-Path -LiteralPath `$versionFile) {
+        `$versionText = Get-Content -LiteralPath `$versionFile -Raw -ErrorAction SilentlyContinue
+        if (`$versionText -and -not `$versionText.Contains(`$RemoteVersion)) {
+            throw "Post-copy version validation failed: expected `$RemoteVersion"
+        }
+    }
+    Log 'Post-copy validation OK.'
+
+    if (-not `$NoRestart) {
+        Remove-Item -LiteralPath `$StartupMarkerPath -Force -ErrorAction SilentlyContinue
+        `$newProcess = Restart-Runtime `$InstallDir
+        Log ("Restart requested. PID=" + `$newProcess.Id)
+
+        if (`$StartupVerification) {
+            `$startDeadline = (Get-Date).AddSeconds(20)
+            `$verified = `$false
+            while ((Get-Date) -lt `$startDeadline) {
+                if (Test-Path -LiteralPath `$StartupMarkerPath) {
+                    try {
+                        `$marker = Get-Content -LiteralPath `$StartupMarkerPath -Raw -ErrorAction Stop
+                        if (`$marker -and `$marker.Contains("version=`$RemoteVersion")) {
+                            `$verified = `$true
+                            break
+                        }
+                    } catch { }
+                }
+                if (`$newProcess.HasExited -and `$newProcess.ExitCode -ne 0) { break }
+                Start-Sleep -Milliseconds 500
+            }
+            if (-not `$verified) {
+                throw "Startup verification failed for SENETECH `$RemoteVersion"
+            }
+            Log 'Startup verification marker OK.'
+        } else {
+            Start-Sleep -Seconds 3
+            if (`$newProcess.HasExited -and `$newProcess.ExitCode -ne 0) {
+                throw "SENETECH exited immediately with code `$(`$newProcess.ExitCode)"
+            }
+            Log 'Restart command completed.'
+        }
+    }
+
+    Log 'UPDATE SUCCESS.'
+    Start-Process -FilePath 'cmd.exe' -ArgumentList @('/c',('ping 127.0.0.1 -n 4 >nul & rd /s /q "' + `$TempRoot + '" 2>nul & del /f /q "' + `$MyInvocation.MyCommand.Path + '" >nul 2>&1')) -WindowStyle Hidden
+    exit 0
+}
+catch {
+    Log ('UPDATE APPLY ERROR: ' + `$_.Exception.Message)
+    try {
+        Restore-PreviousRuntime
+        Log 'ROLLBACK SUCCESS.'
+    } catch {
+        Log ('ROLLBACK ERROR: ' + `$_.Exception.Message)
+    }
+    try {
+        Add-Type -AssemblyName PresentationFramework
+        [System.Windows.MessageBox]::Show(
+            "La mise a jour SENETECH a echoue et a ete annulee.`r`n`r`nL ancienne version a ete restauree si possible.`r`n`r`nJournal :`r`n`$PersistentLogPath",
+            'SENETECH - Mise a jour',
+            [System.Windows.MessageBoxButton]::OK,
+            [System.Windows.MessageBoxImage]::Error
+        ) | Out-Null
+    } catch { }
+    exit 1
+}
 "@
-    Set-Content -Path $CleanupScript -Value $cleanupText -Encoding ASCII
-    $applyScript = Join-Path $TempRoot 'APPLY-SENETECH-UPDATE.cmd'
-    $applyText = @"
-@echo off
-setlocal
-$waitBlock
-ping 127.0.0.1 -n 2 >nul
-if not exist "$InstallDir" mkdir "$InstallDir" >nul 2>&1
-if exist "$BackupDir" (
-  if exist "$rollbackDir" rd /s /q "$rollbackDir"
-  mkdir "$rollbackDir" >nul 2>&1
-  xcopy "$BackupDir\*" "$rollbackDir\" /E /I /Y /Q >nul
-  >"$rollbackMeta" echo {"fromVersion":"$escapedCurrent","replacedBy":"$escapedRemote"}
-)
-xcopy "$StageDir\*" "$InstallDir\" /E /I /Y /Q >nul
-if errorlevel 1 exit /b 1
-$restartLine
-start "" /b "$CleanupScript"
-exit /b 0
-"@
-    Set-Content -Path $applyScript -Value $applyText -Encoding ASCII
-    Write-UpdateLog 'Package ready. Backup created; applying update.'
-    Start-Process -FilePath $applyScript -WindowStyle Hidden
+
+    Set-Content -LiteralPath $ApplyScript -Value $applyText -Encoding UTF8
+    Write-UpdateLog 'Package ready. Starting guarded apply process.'
+    Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"'+$ApplyScript+'"')) -WindowStyle Hidden
     exit 10
 }
 catch {
-    Write-UpdateLog ('ERROR: ' + $_.Exception.Message)
+    Write-UpdateLog ('PREPARE ERROR: ' + $_.Exception.Message)
+    try {
+        Add-Type -AssemblyName PresentationFramework
+        [System.Windows.MessageBox]::Show(
+            "Impossible de preparer la mise a jour SENETECH.`r`n`r`n$($_.Exception.Message)`r`n`r`nJournal :`r`n$PersistentLogPath",
+            'SENETECH - Mise a jour',
+            [System.Windows.MessageBoxButton]::OK,
+            [System.Windows.MessageBoxImage]::Error
+        ) | Out-Null
+    } catch { }
     try { Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue } catch { }
     exit 1
 }
