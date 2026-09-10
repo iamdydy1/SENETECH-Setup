@@ -1,12 +1,15 @@
 param(
-    [string]$CurrentVersion = '1.4.2.0',
+    [string]$CurrentVersion = '1.5.1.0',
     [string]$InstallDir = (Split-Path -Parent $MyInvocation.MyCommand.Path),
+    [string]$UpdateChannel = 'stable',
     [int]$WaitForProcessId = 0,
     [switch]$NoRestart
 )
 
 $ErrorActionPreference = 'Stop'
-$ManifestUrl = 'https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/main/version.json'
+$UpdateChannel = if (([string]$UpdateChannel).ToLowerInvariant() -eq 'develop') { 'develop' } else { 'stable' }
+$UpdateBranch = if ($UpdateChannel -eq 'develop') { 'develop' } else { 'main' }
+$ManifestUrl = "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/$UpdateBranch/version.json"
 $TempRoot = Join-Path $env:TEMP 'SENETECH-Update'
 $ZipPath = Join-Path $TempRoot 'package.zip'
 $StageDir = Join-Path $TempRoot 'stage'
@@ -14,7 +17,7 @@ $LogPath = Join-Path $env:TEMP 'SENETECH-Update.log'
 $Cleanup = Join-Path $env:TEMP 'SENETECH-Cleanup.cmd'
 
 function Log([string]$Text) {
-    $line = '[{0}] {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Text
+    $line = '[{0}] [{1}] {2}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $UpdateChannel.ToUpperInvariant(), $Text
     try { Add-Content -Path $LogPath -Value $line -Encoding UTF8 } catch {}
 }
 
@@ -31,6 +34,7 @@ function Hash256([string]$Path) {
 try {
     try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
     $headers = @{ 'User-Agent' = "SENETECH-Setup/$CurrentVersion" }
+    Log "Checking $ManifestUrl"
     $m = Invoke-RestMethod -Uri $ManifestUrl -Headers $headers -UseBasicParsing
 
     if (-not $m.enabled) { exit 0 }
