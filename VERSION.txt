@@ -1,7 +1,9 @@
 SENETECH Setup
 Version 1.5.1.0
-Canal : Stable
-Branche : main
+Canal : Developpeur
+Branche : develop
+Base : Stable 1.5.1.0
 Windows : 10 / 11
 Mode : Portable + Installe
-Mises a jour : GitHub + SHA-256
+Distribution de base : GitHub Release 1.5.1
+Integrite : SHA-256
