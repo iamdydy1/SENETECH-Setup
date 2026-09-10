@@ -135,7 +135,7 @@ try {
     if(-not (Test-Path -LiteralPath $exe)){ throw 'SENETECH-Setup.exe absent apres recovery.' }
     Start-Process -FilePath $exe -WorkingDirectory $InstallDir
     Log 'Relance SENETECH demandee.'
-    [System.Windows.Forms.MessageBox]::Show('Recovery SENETECH build 25 installee. SENETECH vient d etre relance.','SENETECH Recovery') | Out-Null
+    try { Add-Type -AssemblyName PresentationFramework; [System.Windows.MessageBox]::Show('Recovery SENETECH build 25 installee. SENETECH vient d etre relance.','SENETECH Recovery') | Out-Null } catch { }
 }
 catch{
     Log ('RECOVERY ERROR: ' + $_.Exception.Message)
