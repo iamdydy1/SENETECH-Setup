@@ -37,7 +37,7 @@
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/src/Moteur-WindowsUpdate.ps1","path":"_SENETECH/Moteur-WindowsUpdate.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/catalog/apps.json","path":"_SENETECH/Catalog/apps.json"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/catalog/profiles.json","path":"_SENETECH/Catalog/profiles.json"},
-    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/04beb60182b49cd0b20ae1cfcb082d3aa3351b4a/src/UPDATE-SENETECH-V23.ps1","path":"UPDATE-SENETECH.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/02e02038bf9630614bdf306c17f2250b6e96c6ab/src/UPDATE-SENETECH-INNO.ps1","path":"UPDATE-SENETECH.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/04beb60182b49cd0b20ae1cfcb082d3aa3351b4a/src/UPDATE-SENETECH-CHANNEL.ps1","path":"UPDATE-SENETECH-CHANNEL.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/bb86a0471603b3a7f38379442457d97063b6ad9f/src/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","path":"_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/bb86a0471603b3a7f38379442457d97063b6ad9f/SENETECH-DEV-DIAGNOSTIC.cmd","path":"SENETECH-DEV-DIAGNOSTIC.cmd"}
@@ -47,6 +47,7 @@
   ],
   "releaseNotes": [
     "SENETECH V1.6.0 DEV - build 26 DIAGNOSTIC",
+    "Transition Inno: le bouton Mise a jour utilise maintenant les GitHub Releases et un installateur complet",
     "Hotfix: retrait temporaire du SHA des deux overlays diagnostic apres modification de leur contenu; URLs toujours figees sur commit Git",
     "Le moteur Recovery connu fonctionnel reste identique; seule la version visible passe en build 26",
     "Ajout de SENETECH-DEV-DIAGNOSTIC.cmd pour lancer le moteur en mode trace sans modifier le demarrage normal",
