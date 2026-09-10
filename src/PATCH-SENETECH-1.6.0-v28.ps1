@@ -5,12 +5,12 @@ param(
 $ErrorActionPreference = 'Stop'
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch { }
 
-# Fallback for a machine entering Develop from Stable:
-# 1) build the existing complete V1.6.0.22 runtime,
-# 2) apply the hardened V1.6.0.23 normalizer.
+# Fallback for a machine entering Develop from Stable.
+# Dependencies are pinned to an immutable commit so this build cannot drift.
+$pin = '0c5fe9628e8b6eea49d1e3a6754fdcf3cdfb12aa'
 $steps = @(
-    'https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v25.ps1',
-    'https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v27.ps1'
+    "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/$pin/src/PATCH-SENETECH-1.6.0-v25.ps1",
+    "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/$pin/src/PATCH-SENETECH-1.6.0-v27.ps1"
 )
 $index = 0
 foreach ($url in $steps) {
