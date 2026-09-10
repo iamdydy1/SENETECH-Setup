@@ -1,8 +1,8 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.6.0.21",
-  "displayVersion": "1.6.0 DEV - build 21",
+  "version": "1.6.0.22",
+  "displayVersion": "1.6.0 DEV - build 22",
   "enabled": true,
   "mandatory": false,
   "startupVerification": true,
@@ -12,8 +12,10 @@
   "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "basePackageSize": 109004,
   "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
-  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v23.ps1",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v25.ps1",
   "patchSha256": "",
+  "incrementalPatchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v24.ps1",
+  "incrementalPatchSha256": "",
   "overlayFiles": [
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Catalog.ps1","path":"_SENETECH/Modules/Senetech.Catalog.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Technician.ps1","path":"_SENETECH/Modules/Senetech.Technician.ps1"},
@@ -60,16 +62,15 @@
     "_SENETECH/Catalog/profiles.json"
   ],
   "releaseNotes": [
-    "SENETECH V1.6.0 DEV - build 21",
-    "Correctif critique du systeme de mise a jour",
-    "Suppression de la boucle d attente PID infinie : timeout de 15 secondes puis arret controle de l ancienne instance",
-    "Verification du package avant copie et verification des fichiers apres copie",
-    "Verification que la nouvelle build a reellement atteint son initialisation avant de valider la mise a jour",
-    "Rollback automatique vers le runtime precedent si la copie ou le demarrage echoue",
-    "Journal permanent dans C:\\ProgramData\\SENETECH\\Logs\\SENETECH-Updater.log plus copie de compatibilite dans TEMP",
-    "Message d erreur visible si la preparation ou l application de la mise a jour echoue",
-    "Le nouvel updater est maintenant embarque dans les builds DEV suivantes",
-    "Canaux Stable et Develop, Reporter, cache, validation et Livraison conserves",
+    "SENETECH V1.6.0 DEV - build 22",
+    "Correctif critique du systeme de mise a jour DEV",
+    "Les machines deja en V1.6 build 18 a 21 utilisent maintenant une mise a jour incrementale directe",
+    "Suppression du rejeu complet de toute la chaine de patches pour les V1.6 existantes",
+    "Le patch s applique sur le runtime qui fonctionne deja puis les fichiers officiels DEV sont remis a jour en overlay",
+    "Les sorties PowerShell et les erreurs du patch sont maintenant copiees dans le journal permanent",
+    "Timeout de fermeture, verification apres copie, controle du redemarrage et rollback automatique conserves",
+    "Journal : C:\\ProgramData\\SENETECH\\Logs\\SENETECH-Updater.log",
+    "Canaux Stable et Develop, Reporter, validation, cache et Livraison conserves",
     "Stable V1.5.1 sur main reste inchangee"
   ]
 }
