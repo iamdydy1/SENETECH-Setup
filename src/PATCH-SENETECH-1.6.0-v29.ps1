@@ -28,9 +28,6 @@ function Invoke-PinnedPatch([string]$RelativePath,[string]$Label) {
     try {
         Invoke-WebRequest -UseBasicParsing -Uri ($url + '?senetech=' + [guid]::NewGuid().ToString('N')) -OutFile $tmp -TimeoutSec 45
         & $tmp -StageDir $StageDir
-        if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
-            throw "$Label en echec : code $LASTEXITCODE"
-        }
     } finally {
         Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
     }
