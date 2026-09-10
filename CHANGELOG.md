@@ -1,5 +1,11 @@
 # Changelog SENETECH Setup — Develop
 
+## V1.6.0.1 DEV — 2026-09-10
+
+- Correctif d'encodage pour Windows PowerShell 5.1.
+- Les fichiers PowerShell du runtime sont normalisés en UTF-8 avec BOM pendant la mise à jour.
+- Correction des caractères spéciaux mal affichés dans les fenêtres technicien, notamment le séparateur du gestionnaire de démarrage Windows.
+
 ## V1.6.0 DEV — 2026-09-10
 
 Cette version reste exclusivement sur le canal **Développeur (`develop`)** jusqu'à validation.
