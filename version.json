@@ -8,7 +8,7 @@
   "startupVerification": false,
   "migrationBuild": false,
   "diagnosticBuild": true,
-  "buildPin": "bb86a0471603b3a7f38379442457d97063b6ad9f",
+  "buildPin": "ad45cc0b9025e22570c0c2f3efeebfcc58491589",
   "downloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "packageSize": 109004,
   "sha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
@@ -39,15 +39,19 @@
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/7dc64fd1216068f3353f5ff4d65d750c26c75009/catalog/profiles.json","path":"_SENETECH/Catalog/profiles.json"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/02e02038bf9630614bdf306c17f2250b6e96c6ab/src/UPDATE-SENETECH-INNO.ps1","path":"UPDATE-SENETECH.ps1"},
     {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/04beb60182b49cd0b20ae1cfcb082d3aa3351b4a/src/UPDATE-SENETECH-CHANNEL.ps1","path":"UPDATE-SENETECH-CHANNEL.ps1"},
-    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/bb86a0471603b3a7f38379442457d97063b6ad9f/src/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","path":"_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1"},
-    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/bb86a0471603b3a7f38379442457d97063b6ad9f/SENETECH-DEV-DIAGNOSTIC.cmd","path":"SENETECH-DEV-DIAGNOSTIC.cmd"}
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/ad45cc0b9025e22570c0c2f3efeebfcc58491589/src/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","path":"_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/ad45cc0b9025e22570c0c2f3efeebfcc58491589/SENETECH-DEV-DIAGNOSTIC.cmd","path":"SENETECH-DEV-DIAGNOSTIC.cmd"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/ad45cc0b9025e22570c0c2f3efeebfcc58491589/src/Tools/SENETECH-REPORTER-TEST.ps1","path":"_SENETECH/Tools/SENETECH-REPORTER-TEST.ps1"},
+    {"url":"https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/ad45cc0b9025e22570c0c2f3efeebfcc58491589/SENETECH-REPORTER-TEST.cmd","path":"SENETECH-REPORTER-TEST.cmd"}
   ],
   "requiredFiles": [
-    "_SENETECH/Modules/Senetech.Catalog.ps1","_SENETECH/Modules/Senetech.Technician.ps1","_SENETECH/Modules/Senetech.StartupFix.ps1","_SENETECH/Modules/Senetech.Delivery.ps1","_SENETECH/Modules/Senetech.WinGet.ps1","_SENETECH/Modules/Senetech.Display.ps1","_SENETECH/Modules/Senetech.DeliveryDisplayFix.ps1","_SENETECH/Modules/Senetech.DeliveryInventoryFix.ps1","_SENETECH/Modules/Senetech.DeliveryRegistryFix.ps1","_SENETECH/Modules/Senetech.FrenchUi.ps1","_SENETECH/Modules/Senetech.Validation.ps1","_SENETECH/Modules/Senetech.ReleaseSafety.ps1","_SENETECH/Modules/Senetech.CacheSafety.ps1","_SENETECH/Client/SENETECH-Welcome.ps1","_SENETECH/Moteur-WindowsUpdate.ps1","_SENETECH/Catalog/apps.json","_SENETECH/Catalog/profiles.json","UPDATE-SENETECH.ps1","UPDATE-SENETECH-CHANNEL.ps1","_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","SENETECH-DEV-DIAGNOSTIC.cmd"
+    "_SENETECH/Modules/Senetech.Catalog.ps1","_SENETECH/Modules/Senetech.Technician.ps1","_SENETECH/Modules/Senetech.StartupFix.ps1","_SENETECH/Modules/Senetech.Delivery.ps1","_SENETECH/Modules/Senetech.WinGet.ps1","_SENETECH/Modules/Senetech.Display.ps1","_SENETECH/Modules/Senetech.DeliveryDisplayFix.ps1","_SENETECH/Modules/Senetech.DeliveryInventoryFix.ps1","_SENETECH/Modules/Senetech.DeliveryRegistryFix.ps1","_SENETECH/Modules/Senetech.FrenchUi.ps1","_SENETECH/Modules/Senetech.Validation.ps1","_SENETECH/Modules/Senetech.ReleaseSafety.ps1","_SENETECH/Modules/Senetech.CacheSafety.ps1","_SENETECH/Client/SENETECH-Welcome.ps1","_SENETECH/Moteur-WindowsUpdate.ps1","_SENETECH/Catalog/apps.json","_SENETECH/Catalog/profiles.json","UPDATE-SENETECH.ps1","UPDATE-SENETECH-CHANNEL.ps1","_SENETECH/Tools/SENETECH-DEV-DIAGNOSTIC.ps1","SENETECH-DEV-DIAGNOSTIC.cmd","_SENETECH/Tools/SENETECH-REPORTER-TEST.ps1","SENETECH-REPORTER-TEST.cmd"
   ],
   "releaseNotes": [
     "SENETECH V1.6.0 DEV - build 26 DIAGNOSTIC",
     "Transition Inno: le bouton Mise a jour utilise maintenant les GitHub Releases et un installateur complet",
+    "Ajout de SENETECH-REPORTER-TEST.cmd : consentement, health Cloudflare, test Discord et journal local en un clic",
+    "Le lanceur diagnostic fonctionne depuis l installation, dist/runtime ou le depot GitHub",
     "Hotfix: retrait temporaire du SHA des deux overlays diagnostic apres modification de leur contenu; URLs toujours figees sur commit Git",
     "Le moteur Recovery connu fonctionnel reste identique; seule la version visible passe en build 26",
     "Ajout de SENETECH-DEV-DIAGNOSTIC.cmd pour lancer le moteur en mode trace sans modifier le demarrage normal",
