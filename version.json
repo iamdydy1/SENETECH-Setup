@@ -1,7 +1,7 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.6.0.5",
+  "version": "1.6.0.6",
   "displayVersion": "1.6.0 DEV",
   "enabled": true,
   "mandatory": false,
@@ -11,7 +11,7 @@
   "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "basePackageSize": 109004,
   "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
-  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v7.ps1",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v8.ps1",
   "patchSha256": "",
   "overlayFiles": [
     {
@@ -29,6 +29,10 @@
     {
       "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Delivery.ps1",
       "path": "_SENETECH/Modules/Senetech.Delivery.ps1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.WinGet.ps1",
+      "path": "_SENETECH/Modules/Senetech.WinGet.ps1"
     },
     {
       "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Client/SENETECH-Welcome.ps1",
@@ -52,16 +56,21 @@
     "_SENETECH/Modules/Senetech.Technician.ps1",
     "_SENETECH/Modules/Senetech.StartupFix.ps1",
     "_SENETECH/Modules/Senetech.Delivery.ps1",
+    "_SENETECH/Modules/Senetech.WinGet.ps1",
     "_SENETECH/Client/SENETECH-Welcome.ps1",
     "_SENETECH/Catalog/apps.json",
     "_SENETECH/Catalog/profiles.json"
   ],
   "releaseNotes": [
-    "SENETECH V1.6.0 DEV - build 5",
-    "Correction de la regression updater introduite en build 4",
-    "Mode Installe : retour au mecanisme de relance precedent valide",
+    "SENETECH V1.6.0 DEV - build 6",
+    "Windows 10/11 neuf : installation ou reparation automatique de WinGet si absent",
+    "Bootstrap officiel via Microsoft.WinGet.Client et Repair-WinGetPackageManager",
+    "Detection de winget.exe meme si l alias WindowsApps n est pas encore disponible",
+    "L installation des applications reprend automatiquement avec WinGet apres bootstrap",
+    "La mise a jour des applications utilise aussi le bootstrap WinGet",
+    "Correction de la regression updater introduite en build 4 maintenue",
+    "Mode Installe : mecanisme de relance precedent conserve",
     "Mode Portable : relance separee depuis le dossier propre de SENETECH",
-    "Suppression du helper PowerShell commun qui perturbait les deux modes",
     "Mode Livraison / Vente avec PC propre ou configuration client conservee",
     "Suppression differee du profil technicien et preparation OOBE",
     "SENETECH Welcome au premier profil client",
