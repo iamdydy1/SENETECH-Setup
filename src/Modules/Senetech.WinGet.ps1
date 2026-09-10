@@ -102,3 +102,37 @@ function Get-SenetechWingetCommand {
     if ($BootstrapIfMissing) { return Install-SenetechWinget }
     return $null
 }
+
+# Override the V1.6 app-upgrade function so a fresh Windows installation can
+# bootstrap WinGet before trying to update catalog applications.
+function Invoke-SenetechAppUpdates {
+    if (-not (Test-Internet)) { throw 'Connexion Internet requise.' }
+    $winget = Get-SenetechWingetCommand -BootstrapIfMissing
+    if (-not $winget) { throw 'WinGet est introuvable apres la tentative d installation automatique.' }
+
+    $installed = @()
+    foreach ($app in $script:appMap.Values) {
+        $version = Get-InstalledAppVersion $app.Registry
+        if ($version -ne '-') { $installed += [pscustomobject]$app }
+    }
+    if ($installed.Count -eq 0) {
+        Write-Log 'Aucune application du catalogue detectee pour mise a jour.'
+        return @()
+    }
+
+    $results = @()
+    $locale = Get-PreferredLocale
+    $index = 0
+    foreach ($app in $installed) {
+        $index++
+        Set-Progress ([Math]::Min(90, 10 + [int](80*$index/$installed.Count))) ("Mise a jour : {0}" -f $app.Name)
+        $args = @('upgrade','--id',$app.Id,'--exact','--silent','--accept-package-agreements','--accept-source-agreements','--disable-interactivity','--locale',$locale)
+        $code = Invoke-ProcessVisible -FilePath $winget.Source -Arguments $args
+        $version = Get-InstalledAppVersion $app.Registry
+        $status = if ($code -eq 0) { 'OK' } else { 'A JOUR / NON APPLICABLE' }
+        $results += [pscustomobject]@{ Name=$app.Name; Id=$app.Id; Status=$status; Version=$version; ExitCode=$code; Source='WinGet upgrade'; Locale=$locale }
+        Write-Log ("{0} : {1} (code {2})" -f $app.Name, $status, $code) $(if($code -eq 0){'OK'}else{'INFO'})
+    }
+    Add-SenetechHistory 'Mise a jour applications' 'OK' ("{0} application(s) controlee(s)" -f $installed.Count)
+    return @($results)
+}
