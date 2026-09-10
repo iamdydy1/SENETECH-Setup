@@ -1,7 +1,7 @@
 {
   "product": "SENETECH Setup",
   "channel": "develop",
-  "version": "1.6.0.1",
+  "version": "1.6.0.2",
   "displayVersion": "1.6.0 DEV",
   "enabled": true,
   "mandatory": false,
@@ -11,7 +11,7 @@
   "baseDownloadUrl": "https://github.com/iamdydy1/SENETECH-Setup/releases/download/1.5.1/SENETECH-Setup-V1.5.1-FULL-STABLE.zip",
   "basePackageSize": 109004,
   "baseSha256": "81ab6caf1359ff9617bed74dffaad8a9e6e51c5c7043131ca51ee2e1f4c7332a",
-  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v3.ps1",
+  "patchUrl": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/PATCH-SENETECH-1.6.0-v4.ps1",
   "patchSha256": "",
   "overlayFiles": [
     {
@@ -21,6 +21,10 @@
     {
       "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.Technician.ps1",
       "path": "_SENETECH/Modules/Senetech.Technician.ps1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Modules/Senetech.StartupFix.ps1",
+      "path": "_SENETECH/Modules/Senetech.StartupFix.ps1"
     },
     {
       "url": "https://raw.githubusercontent.com/iamdydy1/SENETECH-Setup/develop/src/Moteur-WindowsUpdate.ps1",
@@ -38,13 +42,14 @@
   "requiredFiles": [
     "_SENETECH/Modules/Senetech.Catalog.ps1",
     "_SENETECH/Modules/Senetech.Technician.ps1",
+    "_SENETECH/Modules/Senetech.StartupFix.ps1",
     "_SENETECH/Catalog/apps.json",
     "_SENETECH/Catalog/profiles.json"
   ],
   "releaseNotes": [
-    "SENETECH V1.6.0 DEV - build 1",
-    "Correctif encodage UTF-8 pour Windows PowerShell 5.1",
-    "Correction des caracteres speciaux dans les fenetres technicien",
+    "SENETECH V1.6.0 DEV - build 2",
+    "Correctif definitif des caracteres de la fenetre Demarrage Windows",
+    "Separateur ASCII compatible Windows PowerShell 5.1",
     "Nouveau mode technicien et bouton PREPARER CE PC",
     "Catalogue applications et profils dynamique",
     "Profils Essentiel, Bureautique, Etudiant, Gaming, Createur, Developpement, PC leger et Personnalise",
