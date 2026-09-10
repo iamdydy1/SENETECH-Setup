@@ -18,6 +18,7 @@ $TempRoot = Join-Path $env:TEMP "SENETECH-Update"
 $ZipPath = Join-Path $TempRoot "SENETECH-update.zip"
 $StageDir = Join-Path $TempRoot "stage"
 $LogPath = Join-Path $env:TEMP "SENETECH-Update.log"
+$CleanupScript = Join-Path $env:TEMP "SENETECH-Cleanup.cmd"
 
 function Reset-LogIfNeeded {
     try {
@@ -86,10 +87,14 @@ try {
         throw "Aucune URL de telechargement n'est definie pour la version $($manifest.version)."
     }
 
-    # Toujours repartir d'un dossier temporaire propre pour eviter l'accumulation.
+    # Une seule zone temporaire est reutilisee : aucune ancienne MAJ ne s'accumule.
     if (Test-Path $TempRoot) {
         Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
+    if (Test-Path $CleanupScript) {
+        Remove-Item $CleanupScript -Force -ErrorAction SilentlyContinue
+    }
+
     New-Item -ItemType Directory -Path $TempRoot | Out-Null
     New-Item -ItemType Directory -Path $StageDir | Out-Null
 
@@ -115,7 +120,7 @@ try {
         [System.IO.Compression.ZipFile]::ExtractToDirectory($ZipPath, $StageDir)
     }
 
-    # Le ZIP n'est plus utile une fois extrait.
+    # Le ZIP est supprime des qu'il a ete extrait.
     Remove-Item $ZipPath -Force -ErrorAction SilentlyContinue
 
     $ApplyScript = Join-Path $TempRoot "APPLY-SENETECH-UPDATE.cmd"
@@ -136,9 +141,15 @@ if not errorlevel 1 (
 "@
     }
 
-    # Un second CMD supprime le dossier temporaire apres l'installation,
-    # afin que les anciennes MAJ ne restent jamais sur le PC.
-    $cleanupLine = 'start "" /b cmd.exe /c "ping 127.0.0.1 -n 5 >nul & rd /s /q ""' + $TempRoot + '"""'
+    # Ce script vit hors du dossier de mise a jour. Il nettoie ensuite tout,
+    # puis se supprime lui-meme.
+    $cleanupCmd = @"
+@echo off
+ping 127.0.0.1 -n 5 >nul
+rd /s /q "$TempRoot" 2>nul
+del /f /q "%~f0" >nul 2>&1
+"@
+    Set-Content -Path $CleanupScript -Value $cleanupCmd -Encoding ASCII
 
     $cmd = @"
 @echo off
@@ -147,7 +158,7 @@ $waitBlock
 ping 127.0.0.1 -n 2 >nul
 xcopy "$StageDir\*" "$InstallDir\" /E /I /Y /Q >nul
 $restartLine
-$cleanupLine
+start "" /b "$CleanupScript"
 exit /b 0
 "@
     Set-Content -Path $ApplyScript -Value $cmd -Encoding ASCII
@@ -161,6 +172,9 @@ catch {
     try {
         if (Test-Path $TempRoot) {
             Remove-Item $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        if (Test-Path $CleanupScript) {
+            Remove-Item $CleanupScript -Force -ErrorAction SilentlyContinue
         }
     } catch {}
     exit 1
