@@ -1,0 +1,167 @@
+                Model = [string]$disk.Model; Serial = [string]$disk.SerialNumber; MediaType = [string]$disk.MediaType
+                BusType = [string]$disk.InterfaceType; SizeGB = [Math]::Round([double]$disk.Size / 1GB, 0)
+                Health = [string]$disk.Status; Operational = [string]$disk.Status
+                Temperature = $null; Wear = $null; PowerOnHours = $null; ReadErrors = $null; WriteErrors = $null
+            }
+        }
+    }
+    return @($items)
+}
+
+function Get-BatteryDetails {
+    $battery = @(Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue | Select-Object -First 1)
+    if ($battery.Count -eq 0) { return $null }
+    $designed = $null
+    $full = $null
+    try {
+        $designed = @(Get-CimInstance -Namespace root/WMI -ClassName BatteryStaticData -ErrorAction Stop | Select-Object -First 1).DesignedCapacity
+        $full = @(Get-CimInstance -Namespace root/WMI -ClassName BatteryFullChargedCapacity -ErrorAction Stop | Select-Object -First 1).FullChargedCapacity
+    } catch { }
+    $health = $null
+    if ($designed -and $full -and [double]$designed -gt 0) { $health = [Math]::Round(([double]$full / [double]$designed) * 100, 0) }
+    return [pscustomobject]@{
+        Charge = $battery[0].EstimatedChargeRemaining
+        Status = $battery[0].Status
+        DesignedCapacity = $designed
+        FullChargeCapacity = $full
+        HealthPercent = $health
+    }
+}
+
+function Get-KeyDrivers {
+    $wanted = @('DISPLAY','NET','MEDIA','BLUETOOTH','CAMERA','IMAGE')
+    return @(Get-CimInstance Win32_PnPSignedDriver -ErrorAction SilentlyContinue |
+        Where-Object { $wanted -contains ([string]$_.DeviceClass).ToUpperInvariant() } |
+        Sort-Object DeviceClass, DeviceName |
+        Select-Object DeviceName, DeviceClass, Manufacturer, DriverVersion, DriverDate, InfName, IsSigned)
+}
+
+function Get-ComponentChecks {
+    $devices = @(Get-CimInstance Win32_PnPEntity -ErrorAction SilentlyContinue)
+    $wifi = @($devices | Where-Object { $_.PNPClass -eq 'Net' -and $_.Name -match '(?i)wi-?fi|wireless|802\.11' })
+    $bluetooth = @($devices | Where-Object { $_.PNPClass -eq 'Bluetooth' })
+    $audio = @($devices | Where-Object { $_.PNPClass -in @('AudioEndpoint','MEDIA') -and $_.Status -eq 'OK' })
+    $camera = @($devices | Where-Object { $_.PNPClass -in @('Camera','Image') -and $_.Status -eq 'OK' })
+    return [pscustomobject]@{
+        Wifi = if ($wifi.Count) { 'Detecte' } else { 'Non detecte' }
+        Bluetooth = if ($bluetooth.Count) { 'Detecte' } else { 'Non detecte' }
+        Audio = if ($audio.Count) { 'Detecte' } else { 'Non detecte' }
+        Camera = if ($camera.Count) { 'Detectee' } else { 'Non detectee' }
+    }
+}
+
+function Get-HardwareSnapshot {
+    Write-Log 'Analyse du materiel en cours...'
+    $computer = Get-CimInstance Win32_ComputerSystem
+    $bios = Get-CimInstance Win32_BIOS
+    $os = Get-CimInstance Win32_OperatingSystem
+    $cpu = Get-CimInstance Win32_Processor | Select-Object -First 1
+    $gpus = @(Get-CimInstance Win32_VideoController | Select-Object -ExpandProperty Name)
+    $disks = Get-StorageDetails
+    $battery = Get-BatteryDetails
+    $drivers = Get-KeyDrivers
+    $components = Get-ComponentChecks
+    $errors = @(Get-CimInstance Win32_PnPEntity | Where-Object { $_.ConfigManagerErrorCode -ne 0 } |
+        Select-Object Name, PNPDeviceID, ConfigManagerErrorCode)
+    $internet = Test-Internet
+    $activation = Get-ActivationState
+    $buildNumber = [int]$os.BuildNumber
+    $architecture = Get-AppArchitecture
+
+    $ramGb = [Math]::Round([double]$computer.TotalPhysicalMemory / 1GB, 1)
+    $snapshot = [pscustomobject]@{
+        Date = Get-Date
+        ComputerName = $env:COMPUTERNAME
+        Manufacturer = [string]$computer.Manufacturer
+        Model = [string]$computer.Model
+        Serial = [string]$bios.SerialNumber
+        CPU = [string]$cpu.Name
+        RAMGB = $ramGb
+        GPU = ($gpus -join ', ')
+        Windows = "{0} - build {1} - {2}" -f $os.Caption, $os.BuildNumber, $os.OSArchitecture
+        WindowsBuild = $buildNumber
+        WindowsSupport = Get-WindowsSupport $buildNumber
+        AppArchitecture = $architecture
+        Activation = $activation
+        Internet = $internet
+        Disks = $disks
+        Battery = $battery
+        Drivers = $drivers
+        Components = $components
+        DeviceErrors = $errors
+    }
+    return $snapshot
+}
+
+function Update-HardwareUi($info) {
+    $script:PcText.Text = "{0} {1} | S/N: {2}" -f $info.Manufacturer, $info.Model, $info.Serial
+    $script:CpuText.Text = $info.CPU
+    $script:RamText.Text = "{0} Go" -f $info.RAMGB
+    $script:GpuText.Text = if ($info.GPU) { $info.GPU } else { 'Non detectee' }
+    $script:WindowsText.Text = "{0} | {1} | Activation: {2}" -f $info.Windows, $info.WindowsSupport, $info.Activation
+    $script:InternetText.Text = if ($info.Internet) { 'Connecte' } else { 'Non connecte' }
+    $script:InternetText.Foreground = if ($info.Internet) { '#34D399' } else { '#FB7185' }
+}
+
+$pdfPackageId = if ((Get-AppArchitecture) -eq 'x86') { 'Adobe.Acrobat.Reader.32-bit' } else { 'Adobe.Acrobat.Reader.64-bit' }
+$appMap = [ordered]@{
+    Chrome = @{ Check = $ChromeCheck; Id = 'Google.Chrome'; Name = 'Google Chrome'; Registry = 'Google Chrome' }
+    Firefox = @{ Check = $FirefoxCheck; Id = 'Mozilla.Firefox'; Name = 'Mozilla Firefox'; Registry = 'Mozilla Firefox' }
+    SevenZip = @{ Check = $SevenZipCheck; Id = '7zip.7zip'; Name = '7-Zip'; Registry = '7-Zip' }
+    VLC = @{ Check = $VlcCheck; Id = 'VideoLAN.VLC'; Name = 'VLC'; Registry = 'VLC media player' }
+    PDF = @{ Check = $PdfCheck; Id = $pdfPackageId; Name = 'Adobe Reader'; Registry = 'Adobe Acrobat' }
+    LibreOffice = @{ Check = $LibreOfficeCheck; Id = 'TheDocumentFoundation.LibreOffice'; Name = 'LibreOffice'; Registry = 'LibreOffice' }
+    Zoom = @{ Check = $ZoomCheck; Id = 'Zoom.Zoom'; Name = 'Zoom'; Registry = 'Zoom Workplace' }
+    Discord = @{ Check = $DiscordCheck; Id = 'Discord.Discord'; Name = 'Discord'; Registry = 'Discord' }
+    Steam = @{ Check = $SteamCheck; Id = 'Valve.Steam'; Name = 'Steam'; Registry = 'Steam' }
+    Epic = @{ Check = $EpicCheck; Id = 'EpicGames.EpicGamesLauncher'; Name = 'Epic Games Launcher'; Registry = 'Epic Games Launcher' }
+    EA = @{ Check = $EaCheck; Id = 'ElectronicArts.EADesktop'; Name = 'EA App'; Registry = 'EA app' }
+    Ubisoft = @{ Check = $UbisoftCheck; Id = 'Ubisoft.Connect'; Name = 'Ubisoft Connect'; Registry = 'Ubisoft Connect' }
+    BattleNet = @{ Check = $BattleNetCheck; Id = 'Blizzard.BattleNet'; Name = 'Battle.net'; Registry = 'Battle.net' }
+    GOG = @{ Check = $GogCheck; Id = 'GOG.Galaxy'; Name = 'GOG Galaxy'; Registry = 'GOG GALAXY' }
+    OBS = @{ Check = $ObsCheck; Id = 'OBSProject.OBSStudio'; Name = 'OBS Studio'; Registry = 'OBS Studio' }
+    VCX64 = @{ Check = $VcX64Check; Id = 'Microsoft.VCRedist.2015+.x64'; Name = 'Microsoft Visual C++ 2015-2022 x64'; Registry = 'Microsoft Visual C++ 2015-2022 Redistributable (x64)' }
+    VCX86 = @{ Check = $VcX86Check; Id = 'Microsoft.VCRedist.2015+.x86'; Name = 'Microsoft Visual C++ 2015-2022 x86'; Registry = 'Microsoft Visual C++ 2015-2022 Redistributable (x86)' }
+    DirectX = @{ Check = $DirectXCheck; Id = 'Microsoft.DirectX'; Name = 'Microsoft DirectX Runtime'; Registry = 'DirectX' }
+}
+
+function Set-Profile([string]$Profile) {
+    foreach ($app in $appMap.Values) { $app.Check.IsChecked = $false }
+    $keys = switch ($Profile) {
+        'Essentiel' { @('Chrome','SevenZip','VLC','PDF') }
+        'Bureautique' { @('Chrome','SevenZip','VLC','PDF','LibreOffice','Zoom') }
+        'Etudiant' { @('Chrome','Firefox','SevenZip','VLC','PDF','LibreOffice','Zoom') }
+        'Gaming' { @('Chrome','SevenZip','VLC','Discord','Steam','Epic','EA','Ubisoft','BattleNet','GOG','OBS','VCX64','VCX86','DirectX') }
+        default { @() }
+    }
+    foreach ($key in $keys) { $appMap[$key].Check.IsChecked = $true }
+    $script:GpuHelperCheck.IsChecked = ($Profile -eq 'Gaming')
+}
+
+function Get-SelectedApps {
+    $selected = @()
+    foreach ($app in $appMap.Values) {
+        if ($app.Check.IsChecked -eq $true) { $selected += [pscustomobject]$app }
+    }
+    return $selected
+}
+
+function Invoke-ProcessVisible([string]$FilePath, [string[]]$Arguments) {
+    $process = Start-Process -FilePath $FilePath -ArgumentList $Arguments -PassThru -WindowStyle Hidden
+    while (-not $process.HasExited) {
+        Start-Sleep -Milliseconds 300
+        Invoke-UiRefresh
+        $process.Refresh()
+    }
+    return $process.ExitCode
+}
+
+function Get-InstalledAppVersion([string]$Pattern) {
+    try {
+        $paths = @(
+            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
+            'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'
+        )
+        $entries = @(Get-ItemProperty $paths -ErrorAction SilentlyContinue | Where-Object {
+            $nameProperty = $_.PSObject.Properties['DisplayName']
