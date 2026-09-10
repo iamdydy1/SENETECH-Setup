@@ -1,0 +1,2 @@
+SENETECH Inno installer smoke test trigger.
+This file exists only to trigger the pull-request validation workflow.
