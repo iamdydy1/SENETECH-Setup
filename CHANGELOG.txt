@@ -1,0 +1,108 @@
+﻿SENETECH SETUP - TEST DE MISE A JOUR
+=====================================
+
+Version 1.4.3
+-------------
+- Test reel de mise a jour V1.4.2 vers V1.4.3 depuis GitHub.
+- Validation du telechargement, du SHA-256, du remplacement et du redemarrage.
+- Conservation du nettoyage automatique des fichiers temporaires.
+- Conservation du cache hors ligne optimise : une seule version par application.
+SENETECH SETUP - HISTORIQUE
+===========================
+
+Version 1.4.2
+-------------
+- Ajout du bouton "Mise a jour" directement dans l interface SENETECH.
+- Verification de la derniere version via le depot GitHub SENETECH-Setup.
+- Affichage des notes de version avant installation.
+- Preparation automatique de l updater puis fermeture propre de SENETECH.
+- Verification SHA-256 prevue pour les futurs packages de mise a jour.
+- Integration du logo officiel SENETECH fourni par le proprietaire.
+- Symbole SENETECH ajoute comme icone du fichier executable.
+- Symbole SENETECH affiche dans la barre des taches et la fenetre Windows.
+- Logo complet ajoute dans l'en-tete de l'application.
+- Creation d'une icone ICO multi-resolution de 16 a 256 pixels.
+
+Version 1.4.1
+-------------
+- Contraste general adouci pour une lecture plus confortable.
+- Fond moins noir et textes remplaces par des gris bleutes moins agressifs.
+- Bordures, boutons, journal et en-tete rendus plus discrets.
+- Correction complete du menu des profils : chaque choix reste lisible.
+- Couleurs de survol et de selection assombries dans la liste des profils.
+
+Version 1.4
+-----------
+- Nouvelle interface sombre premium SENETECH.
+- En-tete modernise, cartes sombres, boutons arrondis et journal harmonise.
+- Profil Gaming complet avec Steam, Epic Games, EA App, Ubisoft Connect,
+  Battle.net, GOG Galaxy, Discord et OBS Studio.
+- Ajout des composants Microsoft Visual C++ x64/x86 et DirectX Runtime.
+- Detection automatique de la langue d'affichage de Windows.
+- Demande prioritaire de l'installateur francais sur un Windows francais.
+- Nouvel essai automatique dans la langue officielle par defaut si necessaire.
+- Langue demandee ajoutee pour chaque application dans le rapport HTML.
+- Conservation de la compatibilite Windows 10/11 et du mode hors ligne USB.
+- Constructeur EXE compatible avec Windows PowerShell sans CompilerOptions.
+
+Version 1.3.2
+-------------
+- Correction du constructeur EXE pour Windows PowerShell sans CompilerOptions.
+- Compilation avec le moteur .NET integre, compatible avec le PC de test.
+- Conservation du manifeste administrateur au nom de SENETECH-Setup.
+- Prise en charge des editions Windows 10 et Windows 11.
+- Detection automatique de l'architecture x86, x64 ou ARM64.
+- Repli automatique sur le cache USB lorsque WinGet est absent.
+- Ajout de la compatibilite Windows et de l'architecture dans le rapport.
+
+Version 1.3.1
+-------------
+- La demande administrateur est maintenant integree directement a l'EXE.
+- La fenetre UAC affiche SENETECH-Setup au lieu de Windows PowerShell.
+- Le moteur PowerShell herite silencieusement des droits de l'application.
+- L'editeur restera inconnu jusqu'a la signature avec un certificat de code.
+
+Version 1.3
+-----------
+- Ajout d'un vrai point de lancement SENETECH-Setup.exe.
+- Creation locale de l'EXE avec le compilateur integre a Windows.
+- Application portable : aucune installation du logiciel sur le PC.
+- L'EXE demande lui-meme les droits administrateur.
+- Lancement sans console PowerShell visible.
+- Ajout des metadonnees SENETECH et de la version 1.3.0.0.
+- Moteur technique range dans le dossier _SENETECH.
+- Conservation complete du mode hybride et hors ligne de la V1.2.
+
+Version 1.2
+-----------
+- Ajout d'un cache d'applications hors ligne sur la cle USB.
+- Ajout d'un bouton pour telecharger ou actualiser les applications choisies.
+- Actualisation automatique du cache existant au retour d'Internet.
+- Surveillance de la connexion toutes les 30 secondes pendant l'ouverture.
+- Installation hors ligne MSI, EXE, MSIX et APPX avec options silencieuses.
+- Export des pilotes tiers du PC actuel avec DISM.
+- Installation des pilotes INF compatibles avec PnPUtil sans Internet.
+- Les operations impossibles hors ligne sont ignorees et notees au rapport.
+- Ajout de la source Internet ou USB pour chaque application du rapport.
+
+Version 1.1.1
+-------------
+- Correction de la lecture des applications dans le registre Windows.
+- Les entrees sans DisplayName ou DisplayVersion sont maintenant ignorees.
+- Une version d'application illisible ne bloque plus toute la preparation.
+
+Version 1.1
+-----------
+- Ajout du suivi OK/ECHEC et de la version des applications.
+- Ajout des versions, dates et signatures des pilotes principaux.
+- Ajout des informations SMART disponibles : sante, temperature, usure et heures.
+- Ajout d'une estimation de sante de batterie lorsque le materiel la fournit.
+- Detection du Wi-Fi, Bluetooth, audio et camera.
+- Ajout optionnel de NVIDIA App ou Intel Driver & Support Assistant.
+- Ajout d'un bouton de redemarrage lorsqu'une mise a jour le demande.
+- Rapport HTML plus detaille.
+
+Version 1.0
+-----------
+- Premiere interface de test.
+- Analyse materielle, applications WinGet, Windows Update et rapport HTML.
